@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "nature": "synthetic",
+  "normalization": "crlf_to_lf_only",
+  "description": "Local synthetic test fixtures only; excluded from the public app dataset. CRLF is converted to LF solely for portable checksums; data values are unchanged.",
+  "files": [
+    {
+      "path": "data/demo/calendar.csv",
+      "nature": "synthetic",
+      "bytes_lf": 83245,
+      "sha256_lf": "04eaf19233dd5d15bda545f3ef919b483fb90942d4ec8890da36139dabc22af8"
+    },
+    {
+      "path": "data/demo/historical.csv",
+      "nature": "synthetic",
+      "bytes_lf": 2183038,
+      "sha256_lf": "0898cccee3a61bf94d113f0473f402b723f87692663985e378042f1ab395de7d"
+    },
+    {
+      "path": "data/demo/weather.csv",
+      "nature": "synthetic",
+      "bytes_lf": 5130500,
+      "sha256_lf": "3f7a8dbe61644ff588e15ff267f75257d03ef18149b956266d2b7bdc0700045a"
+    },
+    {
+      "path": "data/demo/forecast_backtest_24h.json",
+      "nature": "synthetic",
+      "bytes_lf": 2538,
+      "sha256_lf": "7bef6afa0fad9f6ea8cd64e20df80c06d1885ebdb2e7ce36a1db05d5c1b6dfb0"
+    },
+    {
+      "path": "data/demo/forecast_backtest_48h.json",
+      "nature": "synthetic",
+      "bytes_lf": 4793,
+      "sha256_lf": "365f92c5731d0b01c00c60995e8e490b769497c6283ed49a8988546b86c8f9c7"
+    },
+    {
+      "path": "data/demo/forecast_future_24h.json",
+      "nature": "synthetic",
+      "bytes_lf": 2541,
+      "sha256_lf": "f144b37ef7df296a042c4bdab5674f8f8e8a3dd4c61aedf14a47061017c81d4a"
+    },
+    {
+      "path": "data/demo/forecast_future_48h.json",
+      "nature": "synthetic",
+      "bytes_lf": 4793,
+      "sha256_lf": "9655f959c44db5dae4222842fe7ce5b3ef80c21d941155c25fa16739d4a04152"
+    },
+    {
+      "path": "data/demo/forecast_validation_2025_06_24h.json",
+      "nature": "synthetic",
+      "bytes_lf": 2543,
+      "sha256_lf": "ddef70d09523765837ea24fe88f70be0bbd4be0b0d22fe504644c4f744588ef2"
+    },
+    {
+      "path": "data/demo/forecast_validation_2025_06_48h.json",
+      "nature": "synthetic",
+      "bytes_lf": 4792,
+      "sha256_lf": "62581f6452a2e91812e702aac872954f9d864a04107937c2e1a34e5939cfc421"
+    },
+    {
+      "path": "data/demo/forecast_test_2025_09_24h.json",
+      "nature": "synthetic",
+      "bytes_lf": 2533,
+      "sha256_lf": "89ae816e416ff50526b26a193eb0920092ca1845ffaff579270ae7c8055b8561"
+    },
+    {
+      "path": "data/demo/forecast_test_2025_09_48h.json",
+      "nature": "synthetic",
+      "bytes_lf": 4778,
+      "sha256_lf": "d42fd2bd8ab18a419c5b8c91de51247ee851c7d335b394f0ce9de1730d4abf65"
+    },
+    {
+      "path": "data/demo/forecast_test_2025_10_24h.json",
+      "nature": "synthetic",
+      "bytes_lf": 2537,
+      "sha256_lf": "29d276b2bf74588575e29892238fb58294a31b63bdf94fc7888d099281f08e68"
+    },
+    {
+      "path": "data/demo/forecast_test_2025_10_48h.json",
+      "nature": "synthetic",
+      "bytes_lf": 4787,
+      "sha256_lf": "088763a8aad488e75344fec700336e4d51c1073b56219d32d334c20be18e9228"
+    },
+    {
+      "path": "data/demo/forecast_test_2025_12_24h.json",
+      "nature": "synthetic",
+      "bytes_lf": 2540,
+      "sha256_lf": "a47df73bbc3687b9820048ccbd072a009881938ecd64b65698d33e61bbc9d3f3"
+    },
+    {
+      "path": "data/demo/forecast_test_2025_12_48h.json",
+      "nature": "synthetic",
+      "bytes_lf": 4795,
+      "sha256_lf": "a8729a0d18ce0502235d781817d1ae8f349b709460d4294d9eafdcc4e4a5c1f8"
+    },
+    {
+      "path": "data/demo/forecast_forecast_2026_02_24h.json",
+      "nature": "synthetic",
+      "bytes_lf": 2544,
+      "sha256_lf": "014a847face4fc735f5597a846a571f2ca0424608e49eb2f14b8b12972254ad4"
+    },
+    {
+      "path": "data/demo/forecast_forecast_2026_02_48h.json",
+      "nature": "synthetic",
+      "bytes_lf": 4796,
+      "sha256_lf": "f2d61aec8eb871ab121402faf1e06997b1ae88e83df24a482fe633ce14e6a206"
+    },
+    {
+      "path": "data/demo/forecast_forecast_2026_04_24h.json",
+      "nature": "synthetic",
+      "bytes_lf": 2545,
+      "sha256_lf": "c914d0d6905da98356ea2fdae73885f3a69d3393fb2ef985e1fc10ca0c8b12c5"
+    },
+    {
+      "path": "data/demo/forecast_forecast_2026_04_48h.json",
+      "nature": "synthetic",
+      "bytes_lf": 4800,
+      "sha256_lf": "904d70ac4bc62337ffd069d67818940946aedfbe67be401bbc3d2805f59b5b84"
+    },
+    {
+      "path": "data/demo/forecast_forecast_2026_06_24h.json",
+      "nature": "synthetic",
+      "bytes_lf": 2542,
+      "sha256_lf": "7aa00fe32d54266b71557fadcd891ff46e1f77d97f95f1c19755fafc0ad7ede1"
+    },
+    {
+      "path": "data/demo/forecast_forecast_2026_06_48h.json",
+      "nature": "synthetic",
+      "bytes_lf": 4789,
+      "sha256_lf": "7b32ac3bc89777e0ee9d84a17788506d6067337c4156d4f8e37521562ed52055"
+    },
+    {
+      "path": "data/demo/forecast_forecast_2026_09_24h.json",
+      "nature": "synthetic",
+      "bytes_lf": 2539,
+      "sha256_lf": "3303bc53493fff56a3788ee2e65031a7e5199d18d583230024e843fab6ae02f1"
+    },
+    {
+      "path": "data/demo/forecast_forecast_2026_09_48h.json",
+      "nature": "synthetic",
+      "bytes_lf": 4783,
+      "sha256_lf": "cd40f017f96bd2117405d828831e0d4f36738d79a43f0e663a12f1a5de6302f8"
+    }
+  ]
+}

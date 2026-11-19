@@ -1,0 +1,38 @@
+name: Testes e portabilidade
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+      - name: Instalar dependências de desenvolvimento
+        run: python -m pip install -r requirements-dev.txt
+      - name: Conferir dependências
+        run: python -m pip check
+      - name: Conferir arquivos versionados da distribuição pública
+        run: python scripts/check_public_bundle.py --git-index
+      - name: Gerar somente fixtures sintéticas para testes
+        run: python -m services.demo_data
+      - name: Executar testes
+        run: python -m pytest -q -W error::DeprecationWarning -W error::SyntaxWarning
+      - name: Verificar inicialização HTTP com política real
+        run: python scripts/smoke_startup.py
