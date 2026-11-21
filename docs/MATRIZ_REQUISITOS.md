@@ -1,6 +1,6 @@
 # Matriz de requisitos do Monitor de Previsão
 
-A checklist numerada R001–R157 não foi localizada. Os IDs abaixo correspondem à decomposição do pedido atual. A situação inicial inclui os ajustes locais de navegação e limpeza visual feitos antes da auditoria.
+A checklist numerada R001–R157 não foi localizada nas referências do projeto, no histórico Git disponível, nos anexos pesquisados por número ou título, nem no inventário dos pacotes de modelos. Os 134 IDs da auditoria original correspondem à decomposição do pedido de auditoria. O item D16 acompanha a identidade provisória. A correspondência com o checklist original depende do texto ou arquivo fonte dos 157 itens. A situação inicial inclui os ajustes locais de navegação e limpeza visual feitos antes da auditoria.
 
 A monografia disponível (21 páginas, §§1.2–1.6) orienta a leitura dos requisitos. Ela pede delimitação da variável-alvo e da resolução, análise temporal e das associações, construção das entradas e avaliação posterior ao treino com referência simples. A interface comprova os requisitos de visualização e análise indicados na matriz. Os capítulos de desenvolvimento, testes, resultados e conclusão ainda aparecem como títulos nas páginas 17–20 e o protocolo de treinamento completo não acompanha esta entrega.
 
@@ -86,7 +86,7 @@ A monografia disponível (21 páginas, §§1.2–1.6) orienta a leitura dos requ
 | C20 | Eventos pendentes | Pedido §3.C | O | OK | render_seasonality, eventos_pendentes_v5.csv | Preservar separados das classificações | OK | S |
 | C21 | Períodos incompletos | Pedido §3.C | O | OK | filter_history e contagens de perfil | Manter horas disponíveis, sem extrapolar | OK | S |
 | C22 | Associação observacional | Pedido §3.C | O | OK | detalhes metodológicos | Preservar interpretação descritiva | OK | S, D |
-| D01 | Interface em português brasileiro | Pedido §3.D | O | Parcial | views e rótulos do Streamlit | Traduzir novas tabelas. A interface do framework tem textos próprios | Parcial no framework e em identificadores de origem | U |
+| D01 | Interface em português brasileiro | Pedido §3.D | O | Parcial | Views, títulos do app e rótulos das tabelas | Traduzir colunas, legendas e controles sob domínio do painel. Preservar IDs da fonte | Validado nas superfícies do painel. Idioma dos controles nativos depende do Streamlit | U, V |
 | D02 | Exatamente três abas | Pedido §3.D | O | OK | streamlit_app.py | Preservar navegação no topo | OK | U |
 | D03 | Layout amplo | Pedido §3.D | CP | OK | streamlit_app.py | Preservado | OK | U |
 | D04 | Identidade visual consistente | Pedido §3.D | CP | OK | .streamlit/config.toml e charts | Preservada | OK | U |
@@ -95,7 +95,7 @@ A monografia disponível (21 páginas, §§1.2–1.6) orienta a leitura dos requ
 | D07 | Gráficos responsivos | Pedido §3.D | O | OK | st.plotly_chart width stretch | Preservados | OK | U, G |
 | D08 | Unidades visíveis | Pedido §3.D | O | Parcial | _render_forecast, tabelas | Identificar MWmed e °C nas novas tabelas e gráficos | OK | V, S |
 | D09 | Legendas e tooltips | Pedido §3.D | CP | OK | components/charts.py | Preservar unidade, séries e horário | OK | G |
-| D10 | Números e datas em formato brasileiro | Pedido §3.D | O | Parcial | data_table, format_timestamp | Datas civis aparecem nos recortes. Chaves de mês AAAA-MM e CSVs mantêm identidade | Parcial | G, U |
+| D10 | Números e datas em formato brasileiro | Pedido §3.D | O | Parcial | data_table, format_timestamp, month_choice | Aplicar MM/AAAA nos filtros e na tabela mensal, DD/MM/AAAA no inventário e manter chaves originais nas exportações | Validado nas superfícies do painel | G, U, V |
 | D11 | Estados vazios claros | Pedido §3.D | O | OK | render_evolution, _episode_section, _render_profiles | Mensagens nos recortes sem dados | OK | V, S |
 | D12 | Metodologia recolhível | Pedido §3.D | O | OK | expanders nas três abas | Preservada | OK | U |
 | D13 | Poluição visual baixa | Pedido §3.D | CP | OK | estrutura das abas | Manter descrições e diagnósticos recolhidos | OK | U |
@@ -103,14 +103,14 @@ A monografia disponível (21 páginas, §§1.2–1.6) orienta a leitura dos requ
 | D15 | Cores e espaçamento | Pedido §3.D | CP | OK | config.toml, charts e CSS | Preservados | OK | U |
 | D16 | Nome provisório e subtítulo consistentes | Padronização da identidade | O | Parcial | `APP_NAME` e `APP_SUBTITLE` em `streamlit_app.py` | Alinhar títulos, cabeçalho, navegação, README e guias | OK | AppTest, navegação no navegador e inspeção das referências versionadas |
 | E01 | Proveniência da série e dos resultados | Pedido §3.E | O | OK | manifestos e inventário | Preservar identificação | OK | D |
-| E02 | Alvo territorial de carga | Pedido §3.E | O | OK | TARGET, monografia §§1.2 e 1.5 | Identificar ONS SE/CO. Documentar demanda municipal em aberto | OK regional, municipal bloqueado | D |
+| E02 | Alvo territorial de carga | Pedido §3.E | O | OK | TARGET, monografia §§1.2 e 1.5 | Identificar ONS SE/CO. Aguardar decisão acadêmica sobre o alvo e série municipal comprovada caso o grupo mantenha esse objetivo | Validado para ONS SE/CO. Escopo municipal bloqueado por dados | D |
 | E03 | Unidade de medida | Pedido §3.E | O | OK | check_identity e contratos | Verificar MWmed no manifesto e nos agregados | OK | V, D |
 | E04 | Carimbos e emissão | Pedido §3.E | O | OK | forecast_detail, contratos | Verificar emissão, passo e alvo | OK | V, P |
 | E05 | Fusos e hipóteses | Pedido §3.E | O | OK | SCENARIOS, INSTRUCOES_PAINEL_v5.md | Manter UTC e São Paulo como hipóteses | OK na interface, fuso oficial em aberto | V, D |
-| E06 | Separação treino, validação, teste e retrospectiva | Pedido §3.E | O | Parcial | STAGES e manifesto V5 | Preservar etapas, sem atribuir garantia ao treino | Parcial, protocolo completo ausente | D |
+| E06 | Separação treino, validação, teste e retrospectiva | Pedido §3.E | O | Parcial | STAGES e manifesto V5 | Distinguir etapas rotuladas na entrega. Solicitar código, dados de entrada e protocolo reproduzível para auditar sua criação | Etapas do painel validadas. Separação do treino bloqueada por evidência ausente | V, D |
 | E07 | Grade de passos | Pedido §3.E | O | OK | build_horizon, forecast_detail | Validar limite de passos também nos agregados | OK | V, P |
 | E08 | Observados válidos para o erro | Pedido §3.E | O | Parcial | episode_rows, _render_forecast | Conferir série auditada nos episódios e ocultar alvos futuros | OK | V, P |
-| E09 | Ausência de vazamento temporal | Pedido §3.E | O | Bloqueado | Monografia §§1.6 e manifesto V5 | Verificar passos, referências e vigência no painel. Aguardar reprodução do treino | Bloqueado para certificação do treino | D, P |
+| E09 | Ausência de vazamento temporal | Pedido §3.E | O | Bloqueado | Monografia §§1.6, manifesto V5 e auditoria das partições | Verificar origem, alvo, referências e vigência no painel. Auditar ajustes, atributos e partições no pipeline de treino quando entregue | Checagens da entrega validadas. Ausência de vazamento no treino não demonstrada | D, P |
 | E10 | Valores ausentes | Pedido §3.E | O | OK | data_table, history_service, largest_errors | Preservar lacunas e pares válidos | OK | G, V |
 | E11 | Checksums e manifestos | Pedido §3.E | O | Parcial | _checked_csv, partition_path, prepare_model_versions | Verificar compactos, partições e contagens | OK para os artefatos usados | V, D, P |
 | E12 | Duplicatas de métricas | Pedido §3.E | O | OK | metric_tables | Chave única por granularidade | OK | V |
@@ -138,10 +138,10 @@ A monografia disponível (21 páginas, §§1.2–1.6) orienta a leitura dos requ
 | F11 | Dependências consistentes | Pedido §3.F | O | OK | requirements.txt, requirements-dev.txt | Sem novas dependências | OK | T |
 | F12 | Execução Windows | Pedido §3.F | O | OK | setup_local.bat, run_local.bat, smoke_startup.py | Confirmar suíte e inicialização | OK | T |
 | F13 | Instalação e inicialização local | Pedido §3.F | O | OK | scripts e docs/EXECUCAO_LOCAL_WINDOWS.md | Preservar scripts | OK | T |
-| F14 | Preparação Streamlit Community Cloud | Pedido §3.F | O | Parcial | docs/DEPLOY_STREAMLIT.md e amostra | Conferir rotas e documentar armazenamento integral | Preparado, deploy não executado nesta auditoria | T |
+| F14 | Preparação Streamlit Community Cloud | Pedido §3.F | O | Parcial | docs/DEPLOY_STREAMLIT.md, INTEGRACAO_VERSOES.md e índice completo | Validar amostra em cópia limpa e caminho HTTPS simulado. Obter armazenamento autorizado, configurar URL e SHA-256, confirmar app e commit hospedado | Preparação e leitura seletiva validadas. Endpoint real e acervo integral na nuvem dependem do grupo | T, V, P |
 | F15 | Mesma base de código local/nuvem | Pedido §3.F | O | OK | streamlit_app.py e configuração por ambiente | Preservado | OK | T |
 | F16 | Dados gigantes fora do Git | Pedido §3.F | O | OK | .gitignore, check_public_bundle.py | Verificar pacote versionado | OK | T |
 | F17 | Credenciais e arquivos sensíveis | Pedido §3.F | O | OK | check_public_bundle.py | Verificar seleção de arquivos | OK estrutural | T |
 | F18 | README e documentação técnica | Pedido §3.F | O | Parcial | README e docs | Atualizar procedimentos, matriz e relatório | OK | D |
 | F19 | Testes automatizados | Pedido §3.F | O | OK | tests/, smoke_startup.py | Adicionar regressões e executar suíte | OK | T |
-| F20 | Integração segura ao Git compartilhado | Pedido §3.F | O | Parcial | feat/painel-interativo e origin | Preservar alterações anteriores, publicar apenas fast-forward se autorizado | Ver relatório de publicação | T |
+| F20 | Integração segura ao Git compartilhado | Pedido §3.F | O | Parcial | feat/painel-interativo e histórico do GitHub | Preservar o histórico e manter as correções na branch de trabalho | Validado na auditoria publicada, com CI em Ubuntu e Windows. Esta rodada segue o mesmo recorte de branch | T |

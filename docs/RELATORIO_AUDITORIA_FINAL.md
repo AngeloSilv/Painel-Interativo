@@ -13,7 +13,7 @@ A revisão consultou a monografia de 21 páginas, o inventário `RELATORIO_VERSO
 | Explorador de Previsões | Filtros de t₀, horizonte, cenário, etapa e estimador na V5. Detalhe V1 disponível com o legado. Histórico, previsto, observado e referências. | Identificação das unidades na tabela, observado e sazonal semanal no leitor legado, contagem de calendário e MAE com denominador. A V5 oculta observações posteriores ao relógio da execução. A validação aparece no leitor quando existem emissões dessa etapa. |
 | Avaliação de Desempenho e Erros | Agregados V1–V5, curva por passo, papéis dos estimadores e V4 × V5 por pares comuns. | Filtro de versão com cenários compatíveis, denominador do MAPE, transição 24/25 h, horizontes e referências lado a lado. Deltas relativos V4 × V5 usam o valor V4 nos pares comuns. Episódios consultáveis V1/V5, com recorte mensal, filtros no alvo e exportação. Resumo das mudanças técnicas recolhível. |
 | Sazonalidade, Clima e Calendário | Perfis horário, semanal e mensal, carga × temperatura, resolução climática e inventário versionado. | Médias anuais com contagem de horas, extremos do perfil horário e seleção de categorias de calendário por tipo e âmbito. |
-| Integridade e interface | Parquet mensal, cache, chaves de métrica e forma de distribuição compacta. | Validação de SHA-256 e contagem dos CSVs compactos durante o carregamento, mais domínio de passos/blocos. Os ajustes locais de navegação no topo, título **Previsões** e textos recolhidos foram preservados. |
+| Integridade e interface | Parquet mensal, cache, chaves de métrica e forma de distribuição compacta. | Validação de SHA-256 e contagem dos CSVs compactos durante o carregamento, mais domínio de passos e blocos. A navegação no topo e os detalhes recolhíveis foram preservados. |
 
 A comparação entre horizontes é descritiva, com os denominadores de cada modelo e bloco. O teste dos dois modelos de 24 h e 48 h não prova equivalência entre o modelo de 24 h e o primeiro bloco de 48 h. O seletor de versão destaca um recorte, enquanto a visão de evolução reúne as versões elegíveis no cenário escolhido.
 
@@ -22,6 +22,8 @@ A comparação entre horizontes é descritiva, com os denominadores de cada mode
 O título do navegador e o cabeçalho usam **Monitor de Previsão**, com o subtítulo *Painel Interativo de Previsão de Demanda Energética* na interface. O grupo ainda definirá o título da monografia. As variáveis `ENERGY_FORECAST_*`, o caminho de cache `energy-forecast-versions` e o identificador de URL do plano de deploy foram preservados para compatibilidade.
 
 Na revisão da identidade, os 466 testes passaram no Windows, inclusive em uma cópia limpa sem as bases privadas. O teste de inicialização retornou HTTP 200 nas três rotas. O navegador exibiu o novo nome, os títulos das três abas, os gráficos e a seleção de 48 h. A busca no conteúdo versionado não encontrou o nome de apresentação anterior.
+
+Na rodada final, os filtros de emissão e as métricas mensais passaram a exibir MM/AAAA. As tabelas de pares comuns, disponibilidade e calendário usam rótulos em português e o inventário usa datas em DD/MM/AAAA, com vigência em horário de São Paulo. Os identificadores de origem e o conteúdo dos CSVs exportados conservaram o contrato existente. O idioma de menus nativos continua a cargo do Streamlit.
 
 ## Evidência de dados e desempenho
 
@@ -43,9 +45,23 @@ Na revisão da identidade, os 466 testes passaram no Windows, inclusive em uma c
 
 O Windows executou Python 3.13.14. A suíte aprovou **466 testes** no ambiente local e **466** em uma cópia limpa da seleção do Git, com avisos de depreciação e sintaxe tratados como erros. `pip check` passou e o smoke HTTP registrou retorno 200 nas três rotas também na cópia limpa. No navegador, conferi as três abas e baixei o CSV de pares comuns. O CSV do teste de 2025, hipótese UTC, 24 h, continha 104.760 pares comuns e os deltas do estrato selecionado.
 
-O verificador da seleção pública aprovou os 107 arquivos previstos para o Git. A busca por padrões usuais de credenciais na seleção textual não encontrou correspondências. Os ZIPs originais, os Parquets integrais e as bases privadas ficam fora da distribuição. O workflow executa os testes de portabilidade em Ubuntu e Windows. A execução Linux não foi feita neste computador. [Histórico de CI da branch](https://github.com/tccilda/Painel/actions?query=branch%3Afeat%2Fpainel-interativo)
+O verificador da seleção pública aprovou os 107 arquivos previstos para o Git. A busca por padrões usuais de credenciais na seleção textual não encontrou correspondências. Os ZIPs originais, os Parquets integrais e as bases privadas ficam fora da distribuição. A auditoria publicada no commit `e299e68` passou em Ubuntu e Windows no GitHub Actions. [Execução da auditoria publicada](https://github.com/tccilda/Painel/actions/runs/44896072344)
 
-A aplicação está preparada para Streamlit Community Cloud com `streamlit_app.py`, Python 3.13 e os dados compactos versionados. A oferta integral de emissões depende da configuração de armazenamento aprovada. A hospedagem não foi alterada nesta auditoria. Consulte o [guia de preparo e hospedagem](INTEGRACAO_VERSOES.md).
+Para o Community Cloud, a demonstração usa `streamlit_app.py`, Python 3.13 e a amostra V5. O acervo completo existe localmente. O índice, as 88 partições e o legado somam 94.804.266 bytes. Os hashes e tamanhos das partições e o hash do ZIP legado foram conferidos. O teste da fonte HTTPS simula a consulta seletiva e a rejeição de conteúdo divergente. A verificação do serviço real requer o endpoint aprovado, as chaves de configuração e o acesso ao app com a branch e o commit identificados. [Roteiro de implantação](DEPLOY_STREAMLIT.md)
+
+Na rodada final, **467 testes passaram no Windows**. A verificação incluiu a amostra distribuída, os rótulos de interface, as datas e a fonte HTTPS simulada. `pip check` passou e o teste de inicialização retornou HTTP 200 nas três rotas. A consulta à API do GitHub não retornou registros de implantação para a branch. Isso não determina o estado de um app no Community Cloud.
+
+## Prontidão e pendências da rodada final
+
+| Requisitos | Situação | Evidência ou dependência |
+| --- | --- | --- |
+| D01, D10 e D16 | Implementados no painel | Interface e documentação em português, identidade provisória, datas de apresentação e contratos técnicos preservados. |
+| E02 | Validado para o recorte regional. Recorte municipal bloqueado | Para apresentar a pesquisa como municipal, o grupo deve obter série municipal comprovada e revisar a delimitação e a avaliação dos modelos. Se o alvo regional for adotado academicamente, a monografia deve refletir essa decisão. |
+| E05, E06 e E09 | Hipóteses e etapas preservadas. Protocolo completo de treinamento pendente | Faltam a decisão documentada sobre o carimbo e o pipeline reproduzível com dados de entrada, janelas, transformações e regra de seleção. Checagens da entrega não certificam ausência de vazamento no treinamento. |
+| F14 | Preparação verificada. Disponibilização integral externa pendente | Aprovar armazenamento e redistribuição, servir os 90 objetos por HTTPS, configurar URL e hash no app, testar emissões fora da amostra e registrar URL e SHA do app hospedado. |
+| Correspondência R001–R157 | Bloqueada por falta da fonte | A busca no histórico, no projeto e nos anexos encontrou menções ao checklist. O inventário dos pacotes contém versões, métricas e dados, sem o checklist. Os 134 IDs são requisitos decompostos da auditoria, com D16 acrescentado posteriormente. |
+
+**Pronto para demonstração acadêmica local do estudo regional**, com cobertura integral V1/V5 na instalação que dispõe do acervo e com cobertura amostral V5 em checkout limpo. **A defesa de conclusões municipais, a certificação do treino e a oferta integral em um endereço público permanecem pendentes.** A validação da apresentação deve identificar a abrangência regional e explicitar as hipóteses e a cobertura exibida.
 
 ## Arquivos da auditoria
 

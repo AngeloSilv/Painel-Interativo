@@ -67,6 +67,7 @@ def test_metrics_use_real_row_keys_and_paired_source():
     global_table, paired = (app.dataframe[j].value for j in (0, 1))
     assert pd.isna(global_table.loc[global_table["Versão"].eq("V1"), "MAE (MWmed)"].iloc[0])
     assert paired["n_pares_comuns"].tolist() == [104760]
+    assert json.loads(app.dataframe[1].proto.columns)["n_pares_comuns"]["label"] == "Pares comuns"
     assert paired["delta_mae_mwmed"].iloc[0] == data["pares"].loc[
         data["pares"]["cenario"].eq("hipotese_UTC") & data["pares"]["horizonte_h"].eq(24)
         & data["pares"]["etapa"].eq("teste_2025") & data["pares"]["modelo"].eq("ols_estabilizado"),
@@ -81,7 +82,8 @@ def test_audited_calendar_uses_versioned_ids_and_separate_pending_rows():
         default_timeout=60,
     ).run()
     assert not app.exception and len(app.get("plotly_chart")) >= 6
-    assert any("evento_versao_id" in df.value for df in app.dataframe)
+    events = next(df.value for df in app.dataframe if "evento_versao_id" in df.value)
+    assert events["data_local"].str.fullmatch(r"\d{2}/\d{2}/\d{4}").all()
     assert any("motivo_pendencia" in df.value for df in app.dataframe)
 
 
@@ -97,6 +99,8 @@ def test_clean_checkout_ships_real_v5_sample(monkeypatch, tmp_path):
     assert any("12 emissões reais" in item.value for item in method.markdown)
     assert not any("12 emissões reais" in item.value for item in page.caption)
     assert page.selectbox(key="v5_month").label == "Mês da emissão (amostra V5)"
+    assert page.selectbox(key="v5_month").options == ["07/2025"]
+    assert page.selectbox(key="v5_month").value == "2025-07"
     assert page.selectbox(key="catalog_explorer_version").options == ["V5"]
 
 
@@ -135,3 +139,33 @@ def test_compact_manifest_rejects_tampered_metrics(tmp_path):
         changed.write(b"\n")
     with pytest.raises(ValueError, match="SHA-256 divergente: metricas_globais_v5.csv"):
         versions.metric_tables(str(tmp_path))
+
+
+def test_https_detail_fetches_only_requested_partition_and_checks_hash(monkeypatch, tmp_path):
+    source = tmp_path / "storage"
+    source.mkdir()
+    prepare_index(source)
+    index = source / "index.json"
+    monkeypatch.setenv("ENERGY_FORECAST_DETAIL_DIR", str(tmp_path / "unmounted"))
+    base = "https://storage.example.test/releases/forecast"
+    monkeypatch.setenv("ENERGY_FORECAST_DETAIL_URL", base)
+    monkeypatch.setenv("ENERGY_FORECAST_DETAIL_SHA256", hashlib.sha256(index.read_bytes()).hexdigest())
+    monkeypatch.setattr(versions.tempfile, "gettempdir", lambda: str(tmp_path))
+    downloaded = []
+
+    def open_storage(url, *, timeout):
+        assert url.startswith(base + "/")
+        name = url.removeprefix(base + "/")
+        downloaded.append(name)
+        return (source / name).open("rb")
+
+    monkeypatch.setattr(versions, "urlopen", open_storage)
+    first, second = versions.detail_index()
+    assert downloaded == ["index.json"]
+    assert not first["preview"] and not second["preview"]
+    path = versions.partition_path(first)
+    assert downloaded == ["index.json", first["file"]]
+    assert path.read_bytes() == (source / first["file"]).read_bytes()
+    (source / second["file"]).write_bytes(b"particao corrompida")
+    with pytest.raises(ValueError, match="SHA-256 divergente"):
+        versions.partition_path(second)

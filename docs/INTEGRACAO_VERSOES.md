@@ -28,6 +28,10 @@ Use streamlit_app.py na raiz e Python 3.13. As tabelas e a série auditada funci
 - ENERGY_FORECAST_DETAIL_URL com a URL HTTPS base, sem credenciais na URL.
 - ENERGY_FORECAST_DETAIL_SHA256 com o SHA-256 do index.json impresso pelo preparador.
 
+O pacote local conferido tem **90 objetos e 94.804.266 bytes**: um índice de 30.217 bytes, 88 partições V5 (44 por horizonte, 6.518.880 linhas no total) e um ZIP V1 de 23.123.073 bytes. A maior partição tem 1.144.124 bytes. O SHA-256 do índice desta cópia é `b4781dbcefa4b70acafd9c95499412fb39d4f199ccbc538cb7ea0293759efdbf`. Use o hash dos bytes efetivamente publicados se o índice for regenerado. Os nomes de cada partição constam em `partitions[].file`.
+
+O carregador precisa receber o conteúdo original de cada objeto por GET HTTPS sem credenciais na URL. Links de compartilhamento que devolvem uma página HTML não substituem esses arquivos. Consulte o [roteiro de configuração e validação](DEPLOY_STREAMLIT.md#previsões-completas-v1-e-v5).
+
 No Community Cloud, essas variáveis podem ser definidas no campo **Secrets** como chaves TOML de nível superior. O índice informa hashes e limites de cada partição. O painel só baixa a partição do mês/recorte consultado e confirma SHA-256 antes de abrir. O cache é temporário e pode ser reconstruído a partir dessa fonte após reinício. O ZIP legado só é buscado quando V1 é escolhida. Em instalações com arquivos locais montados, ENERGY_FORECAST_DETAIL_DIR substitui a URL. Sem detalhe integral configurado, o Explorador seleciona explicitamente a amostra V5 versionada. Essa amostra tem 432 alvos originais e ocupa cerca de 122 kB. Regere-a com `python scripts/prepare_model_versions.py --preview` após preparar o detalhe integral. As métricas não são recalculadas a partir da amostra.
 
 ## Interpretação

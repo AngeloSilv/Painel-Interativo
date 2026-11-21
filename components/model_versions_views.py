@@ -21,6 +21,12 @@ def choice(label, options, key, labels=None):
     return st.selectbox(label, options, key=key, format_func=(labels or {}).get if labels else str)
 
 
+def month_choice(label, months, key):
+    options = sorted(months, reverse=True)
+    labels = {month: f"{month[5:]}/{month[:4]}" for month in options}
+    return choice(label, options, key, labels)
+
+
 def header(title):
     st.header(title)
     st.caption("ONS Sudeste/Centro-Oeste · ONS_SECO_piloto · MWmed")
@@ -85,8 +91,7 @@ def _render_v5(*, legacy_available):
     if not entries:
         st.info("Nenhuma emissão no recorte selecionado.")
         return
-    month = choice("Mês da emissão (amostra V5)" if preview else "Mês da emissão",
-                   sorted(entries, reverse=True), "v5_month")
+    month = month_choice("Mês da emissão (amostra V5)" if preview else "Mês da emissão", entries, "v5_month")
     entry = entries[month]
     path = versions.partition_path(entry)
     catalog = versions.issues_for_models(path, entry["sha256"])
@@ -205,7 +210,8 @@ def render_evolution():
     display["versao"] = display["versao"].str.upper()
     if display[metric].notna().any():
         fig = px.scatter(display, x="versao", y=metric, hover_data=["modelo", "n_pares"],
-                         labels={"versao": "Versão", metric: versions.METRICS[metric]})
+                         labels={"versao": "Versão", "modelo": "Estimador", "n_pares": "Pares",
+                                 metric: versions.METRICS[metric]})
         fig.update_traces(marker_size=10)
         fig.update_layout(height=300, margin={"t": 15}, separators=",.")
         fig.update_xaxes(categoryorder="array", categoryarray=[v.upper() for v in order])
@@ -237,7 +243,13 @@ def render_evolution():
         if civil.empty:
             st.caption("N/D neste recorte.")
         else:
-            data_table(civil[["versao", "modelo", civil_key, "n_pares", *versions.METRICS]], height=320)
+            display_civil = civil[["versao", "modelo", civil_key, "n_pares", *versions.METRICS]].copy()
+            if granularity == "por_mes":
+                display_civil[civil_key] = pd.to_datetime(display_civil[civil_key], format="%Y-%m").dt.strftime("%m/%Y")
+            data_table(display_civil, height=320, labels={
+                "versao": "Versão", "modelo": "Estimador", civil_key: "Hora local" if granularity == "por_hora" else "Mês",
+                "n_pares": "Pares", **versions.METRICS,
+            })
     with st.expander("Disponibilidade e detalhes metodológicos"):
         st.write("A comparação V4 × V5 usa os pares comuns fornecidos. Os deltas são V5 − V4 e a variação do MAPE é expressa em pontos percentuais.")
         st.write("V1 tem carimbo bruto sem fuso documentado e fica em recorte próprio. V2–V4 incluem agregados; V1 e V5 têm detalhe quando a fonte correspondente está configurada. As duas hipóteses de V2–V5 seguem abertas.")
@@ -247,7 +259,10 @@ def render_evolution():
         availability = tables["disponibilidade"]
         subset = _filter(availability, horizon, stage, scenario)
         if not subset.empty:
-            data_table(subset[["versao", "modelo", "tabela", "campo", "status", "motivo"]], height=320)
+            data_table(subset[["versao", "modelo", "tabela", "campo", "status", "motivo"]], height=320, labels={
+                "versao": "Versão", "modelo": "Estimador", "tabela": "Tabela", "campo": "Campo",
+                "status": "Situação", "motivo": "Motivo",
+            })
 
 
 def _step_chart(frame, horizon, stage, scenario, block, role, model, metric):
@@ -291,11 +306,17 @@ def _paired_section(frame, horizon, stage, scenario, block, role, model, populat
         delta_mae_pct=pairs["delta_mae_mwmed"].div(pairs["mae_mwmed_v4"].where(pairs["mae_mwmed_v4"].gt(0))).mul(100),
         delta_rmse_pct=pairs["delta_rmse_mwmed"].div(pairs["rmse_mwmed_v4"].where(pairs["rmse_mwmed_v4"].gt(0))).mul(100),
     )
-    fields = ["tipo_comparacao", "modelo_ref", "modelo", "n_pares_comuns", "n_mape_validos_comuns",
-              "n_excluidos_v4", "n_excluidos_v5", "mae_mwmed_v4", "mae_mwmed_v5", "delta_mae_mwmed",
-              "delta_mae_pct", "rmse_mwmed_v4", "rmse_mwmed_v5", "delta_rmse_mwmed", "delta_rmse_pct",
-              "mape_pct_v4", "mape_pct_v5", "delta_mape_pp"]
-    data_table(pairs[fields], decimals=4)
+    labels = {
+        "tipo_comparacao": "Tipo de comparação", "modelo_ref": "Estimador V4", "modelo": "Estimador V5",
+        "n_pares_comuns": "Pares comuns", "n_mape_validos_comuns": "Pares MAPE",
+        "n_excluidos_v4": "Excluídos V4", "n_excluidos_v5": "Excluídos V5",
+        "mae_mwmed_v4": "MAE V4 (MWmed)", "mae_mwmed_v5": "MAE V5 (MWmed)",
+        "delta_mae_mwmed": "Δ MAE (MWmed)", "delta_mae_pct": "Δ MAE (%)",
+        "rmse_mwmed_v4": "RMSE V4 (MWmed)", "rmse_mwmed_v5": "RMSE V5 (MWmed)",
+        "delta_rmse_mwmed": "Δ RMSE (MWmed)", "delta_rmse_pct": "Δ RMSE (%)",
+        "mape_pct_v4": "MAPE V4 (%)", "mape_pct_v5": "MAPE V5 (%)", "delta_mape_pp": "Δ MAPE (p.p.)",
+    }
+    data_table(pairs[list(labels)], decimals=4, labels=labels)
     st.download_button("Exportar pares comuns", csv_bytes(pairs), file_name="metricas_v4_v5_pares_comuns.csv", mime="text/csv")
 
 
@@ -335,7 +356,7 @@ def _episode_section(scenario, stage, horizon, block, model):
                     st.info("Nenhuma previsão individual V1 disponível neste recorte.")
                     return
                 model = subset["model_name"].iloc[0]
-                month = choice("Mês da emissão", sorted(subset["month_issued"].unique(), reverse=True), "v1_episode_month")
+                month = month_choice("Mês da emissão", subset["month_issued"].unique(), "v1_episode_month")
                 rows = versions.legacy_episode_rows(bundle, subset, month, lo, hi)
                 preview = False
             else:
@@ -345,8 +366,8 @@ def _episode_section(scenario, stage, horizon, block, model):
                     st.info("Nenhuma emissão disponível neste recorte.")
                     return
                 preview = next(iter(entries.values()))["preview"]
-                month = choice("Mês da emissão (amostra V5)" if preview else "Mês da emissão",
-                               sorted(entries, reverse=True), "v5_episode_month")
+                month = month_choice("Mês da emissão (amostra V5)" if preview else "Mês da emissão",
+                                     entries, "v5_episode_month")
                 entry = entries[month]
                 rows = versions.episode_rows(versions.partition_path(entry), entry["sha256"], model, lo, hi, scenario)
         except (OSError, ValueError, KeyError, URLError) as error:
@@ -404,6 +425,20 @@ def render_seasonality(render_profiles):
     render_profiles((bundle, settings))
     with st.expander("Inventário versionado e pendências"):
         st.write("A série horária auditada V5 usa os IDs ativos na própria hora. O alcance de cada ato consta no inventário. As pendências abaixo não entram nas classificações.")
-        data_table(pd.DataFrame(list(value.events.values()))[["evento_versao_id", "data_local", "nome_evento", "esfera",
-                                                      "alcance", "conhecido_desde", "conhecido_ate", "fonte_url"]], height=300)
-        data_table(value.pending, height=220)
+        labels = {"evento_versao_id": "ID da versão do evento", "data_local": "Data local", "nome_evento": "Evento",
+                  "esfera": "Esfera", "alcance": "Alcance", "conhecido_desde": "Conhecido desde",
+                  "conhecido_ate": "Conhecido até", "fonte_url": "Fonte"}
+        events = pd.DataFrame(list(value.events.values()), columns=list(labels))
+        pending = value.pending.copy()
+        for table in (events, pending):
+            table["data_local"] = pd.to_datetime(table["data_local"], format="%Y-%m-%d").dt.strftime("%d/%m/%Y")
+        for column in ("conhecido_desde", "conhecido_ate"):
+            for table in (events, pending):
+                if column in table:
+                    table[column] = pd.to_datetime(table[column], utc=True).dt.tz_convert(versions.TZ).dt.strftime("%d/%m/%Y %H:%M %z")
+        data_table(events, height=300, labels=labels)
+        data_table(pending, height=220, labels={
+            **labels, "tipo_proposto": "Tipo proposto", "esfera_proposta": "Esfera proposta",
+            "ato_ou_fonte": "Ato ou fonte", "alcance_horario_pendente": "Alcance horário pendente",
+            "motivo_pendencia": "Motivo da pendência", "acao": "Ação",
+        })
