@@ -4,8 +4,10 @@ from datetime import timedelta
 import hashlib
 import json
 from pathlib import Path
+import shutil
 
 import pandas as pd
+import pytest
 from streamlit.testing.v1 import AppTest
 
 from services import model_versions as versions
@@ -46,8 +48,10 @@ def test_v5_starts_with_exact_horizons_and_older_aggregate_only(monkeypatch, tmp
     page.radio(key="v5_explorer_horizon").set_value(48).run()
     assert not page.exception and len(page.dataframe[0].value) == 48
     assert page.selectbox(key="catalog_explorer_version").options == ["V5"]
-    assert page.selectbox(key="source_mode").options == ["Catálogo V1–V5"]
-    assert any("V2–V4 têm apenas métricas agregadas" in item.value for item in page.caption)
+    assert all(widget.label != "Fonte" for widget in page.selectbox)
+    method = next(item for item in page.expander if item.label == "Detalhes metodológicos")
+    assert any("V2–V4 têm apenas métricas agregadas" in item.value for item in method.markdown)
+    assert not any("V2–V4 têm apenas métricas agregadas" in item.value for item in page.caption)
 
 
 def test_metrics_use_real_row_keys_and_paired_source():
@@ -89,5 +93,45 @@ def test_clean_checkout_ships_real_v5_sample(monkeypatch, tmp_path):
     assert sum(item["rows"] for item in index) == 432
     page = AppTest.from_file(ROOT / "streamlit_app.py", default_timeout=60).run()
     assert not page.exception and len(page.dataframe[0].value) == 24
-    assert any("12 emissões reais" in item.value for item in page.caption)
+    method = next(item for item in page.expander if item.label == "Detalhes metodológicos")
+    assert any("12 emissões reais" in item.value for item in method.markdown)
+    assert not any("12 emissões reais" in item.value for item in page.caption)
+    assert page.selectbox(key="v5_month").label == "Mês da emissão (amostra V5)"
     assert page.selectbox(key="catalog_explorer_version").options == ["V5"]
+
+
+def test_v5_evaluation_uses_one_month_and_filters_real_episodes(monkeypatch, tmp_path):
+    monkeypatch.setenv("ENERGY_FORECAST_DETAIL_DIR", str(tmp_path))
+    monkeypatch.setenv("ENERGY_FORECAST_DETAIL_URL", "")
+    app = AppTest.from_string(
+        "from components.model_versions_views import render_evolution\nrender_evolution()", default_timeout=60,
+    ).run()
+    app.radio(key="evolution_horizon").set_value(48).run()
+    app.selectbox(key="evolution_block").set_value("25–48 h").run()
+    app.toggle(key="v5_query_episodes").set_value(True).run()
+    assert not app.exception and not app.warning
+    episodes = next(table.value for table in app.dataframe if "Erro absoluto (MWmed)" in table.value)
+    assert set(episodes["Passo"]) == set(range(25, 49))
+    assert episodes["Erro absoluto (MWmed)"].is_monotonic_decreasing
+    pd.testing.assert_series_equal(episodes["Erro absoluto (MWmed)"],
+                                  (episodes["Observado (MWmed)"] - episodes["Previsto (MWmed)"]).abs(),
+                                  check_names=False)
+    exports = [item.proto.label for item in app.get("download_button")]
+    assert {"Exportar episódios", "Exportar métricas do recorte", "Exportar pares comuns"}.issubset(exports)
+    app.selectbox(key="evolution_version").set_value("v1").run()
+    assert not app.exception and app.selectbox(key="evolution_scenario").value == "sem_cenario_bruto"
+    assert app.dataframe[0].value["Versão"].tolist() == ["V1"]
+
+
+def test_compact_manifest_rejects_tampered_metrics(tmp_path):
+    for folder in (versions.OLD, versions.V5):
+        source = versions.root() / folder
+        target = tmp_path / folder
+        target.mkdir()
+        for path in source.glob("*"):
+            if path.is_file() and (path.name.startswith(("metricas_", "MANIFESTO"))):
+                shutil.copyfile(path, target / path.name)
+    with (tmp_path / versions.V5 / "metricas_globais_v5.csv").open("ab") as changed:
+        changed.write(b"\n")
+    with pytest.raises(ValueError, match="SHA-256 divergente: metricas_globais_v5.csv"):
+        versions.metric_tables(str(tmp_path))

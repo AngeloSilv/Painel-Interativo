@@ -15,6 +15,7 @@ import pandas as pd
 import streamlit as st
 
 from services import data_loader
+from services.archive_analysis import prepare_archive_evaluation
 from services.archive_loader import load_archive_bundle
 
 TARGET = "ONS_SECO_piloto"
@@ -50,6 +51,29 @@ def read_csv(path, **kwargs):
     return pd.read_csv(path, float_precision="round_trip", **kwargs)
 
 
+def _manifest(directory, version):
+    v5 = version == "v5"
+    filename = "MANIFESTO_v5.json" if v5 else "MANIFESTO_metricas_versoes_anteriores.json"
+    manifest = json.loads((directory / filename).read_text(encoding="utf-8"))
+    if (manifest["alvo_id"], manifest["unidade"]) != (TARGET, "MWmed"):
+        raise ValueError("Alvo ou unidade incompatível no manifesto.")
+    if v5 and (manifest["versao"], manifest["versao_esquema"]) != ("v5", "1.0.0"):
+        raise ValueError("Versão ou esquema incompatível no manifesto V5.")
+    return manifest["arquivos" if v5 else "saidas"]
+
+
+def _checked_csv(directory, filename, metadata, **kwargs):
+    path = directory / filename
+    info = metadata[filename]
+    with path.open("rb") as source:
+        if hashlib.file_digest(source, "sha256").hexdigest() != info["sha256"]:
+            raise ValueError(f"SHA-256 divergente: {filename}.")
+    frame = read_csv(path, **kwargs)
+    if len(frame) != info.get("linhas", info.get("linhas_sem_cabecalho")):
+        raise ValueError(f"Contagem divergente: {filename}.")
+    return frame
+
+
 def check_identity(frame, versions):
     if not (frame["alvo_id"].eq(TARGET).all() and frame["unidade"].eq("MWmed").all()
             and frame["versao"].isin(versions).all()
@@ -61,13 +85,15 @@ def check_identity(frame, versions):
 @st.cache_data(show_spinner=False)
 def metric_tables(directory):
     directory = Path(directory)
+    old_dir, new_dir = directory / OLD, directory / V5
+    old_manifest, new_manifest = _manifest(old_dir, "histórico"), _manifest(new_dir, "v5")
     result = {}
     for name, dimensions in (
         ("globais", ["bloco_horas"]), ("por_passo", ["passo_h"]),
         ("por_hora", ["bloco_horas", "hora_alvo_local"]), ("por_mes", ["bloco_horas", "mes_alvo_local"])
     ):
-        old = read_csv(directory / OLD / f"metricas_{name}.csv")
-        new = read_csv(directory / V5 / f"metricas_{name}_v5.csv")
+        old = _checked_csv(old_dir, f"metricas_{name}.csv", old_manifest)
+        new = _checked_csv(new_dir, f"metricas_{name}_v5.csv", new_manifest)
         check_identity(old, (*VERSIONS[:4], "piloto"))
         check_identity(new, ("v5",))
         frame = pd.concat([old, new], ignore_index=True)
@@ -77,6 +103,14 @@ def metric_tables(directory):
                 and frame["etapa"].isin(STAGES).all()
                 and frame["eh_selecionado"].isin([0, 1]).all()):
             raise ValueError(f"Dimensões inválidas: {name}.")
+        if name == "por_passo":
+            valid = frame["passo_h"].between(1, frame["horizonte_h"]) & frame["passo_h"].mod(1).eq(0)
+        else:
+            valid = frame["bloco_horas"].eq("1–24 h") | (
+                frame["horizonte_h"].eq(48) & frame["bloco_horas"].isin(["25–48 h", "1–48 h"])
+            )
+        if not valid.all():
+            raise ValueError(f"Passos ou blocos inválidos: {name}.")
         frame["papel"] = np.select(
             [frame["modelo"].isin(["persistencia", "sazonal_semanal"]),
              frame["modelo"].eq("piloto_so_carga") | frame["versao"].eq("piloto"),
@@ -84,7 +118,7 @@ def metric_tables(directory):
             ["Referência", "Piloto", "Selecionado"], default="Alternativa",
         )
         result[name] = frame
-    paired = read_csv(directory / V5 / "comparacao_v4_v5_pares_comuns.csv")
+    paired = _checked_csv(new_dir, "comparacao_v4_v5_pares_comuns.csv", new_manifest)
     check_identity(paired, ("v5",))
     if (paired.duplicated(BASE_KEY + ["bloco_horas", "versao_ref", "modelo_ref", "tipo_comparacao"]).any()
             or not paired["versao_ref"].eq("v4").all() or not paired["n_pares_comuns"].gt(0).all()
@@ -93,7 +127,7 @@ def metric_tables(directory):
                    for v in ("v4", "v5"))):
         raise ValueError("Comparação de pares comuns inválida.")
     result["pares"] = paired
-    result["disponibilidade"] = read_csv(directory / OLD / "disponibilidade_metricas.csv")
+    result["disponibilidade"] = _checked_csv(old_dir, "disponibilidade_metricas.csv", old_manifest)
     return result
 
 
@@ -122,8 +156,9 @@ def classify(row, names):
 @st.cache_data(show_spinner=False)
 def load_scenario(directory, scenario):
     base = Path(directory) / V5
-    history = read_csv(base / "serie_horaria_auditada_v5.csv", keep_default_na=False, na_values=[""])
-    events = read_csv(base / "eventos_calendario_v5.csv")
+    manifest = _manifest(base, "v5")
+    history = _checked_csv(base, "serie_horaria_auditada_v5.csv", manifest, keep_default_na=False, na_values=[""])
+    events = _checked_csv(base, "eventos_calendario_v5.csv", manifest)
     check_identity(history, ("v5",))
     check_identity(events, ("v5",))
     history = history.loc[history["cenario"].eq(scenario)].copy()
@@ -143,7 +178,7 @@ def load_scenario(directory, scenario):
         [classify(row, names) for row in history.itertuples(index=False)],
         columns=["day_type", "holiday_scope", "event_name"], index=history.index,
     ).assign(timestamp=timestamp, region=REGION)
-    return ScenarioData(obs, weather, calendar, names, read_csv(base / "eventos_pendentes_v5.csv"))
+    return ScenarioData(obs, weather, calendar, names, _checked_csv(base, "eventos_pendentes_v5.csv", manifest))
 
 
 def setting(name, default=""):
@@ -259,6 +294,41 @@ def forecast_detail(path, digest, horizon, model, issue):
     return data
 
 
+@st.cache_data(show_spinner=False, max_entries=12)
+def episode_rows(path, digest, model, first_step, last_step, scenario):
+    """Lê só o estimador e o bloco de uma partição mensal de emissões."""
+    columns = ["origem_t", "instante_alvo", "passo_h", "y_real", "y_pred",
+               "fim_de_semana", "eh_feriado", "eh_ponto_facultativo", "evento_versao_ids"]
+    frame = pd.read_parquet(
+        path, columns=columns,
+        filters=[("modelo", "=", model), ("passo_h", ">=", first_step), ("passo_h", "<=", last_step)],
+    ).rename(columns={"origem_t": "issued_at", "instante_alvo": "timestamp", "passo_h": "forecast_step",
+                      "y_real": "observed_load", "y_pred": "predicted_load"})
+    if frame.empty:
+        return frame
+    for column in ("issued_at", "timestamp"):
+        frame[column] = pd.to_datetime(frame[column], utc=True)
+    if (frame.duplicated(["issued_at", "forecast_step"]).any()
+            or not (frame["timestamp"] - frame["issued_at"]).eq(pd.to_timedelta(frame["forecast_step"], unit="h")).all()):
+        raise ValueError("Passos ou alvos incompatíveis no recorte de episódios.")
+    observed = load_scenario(str(root()), scenario)
+    matched = frame["timestamp"].map(observed.observations.set_index("timestamp")["observed_load"])
+    valid = matched.notna() & frame["observed_load"].notna()
+    if not np.isclose(frame.loc[valid, "observed_load"], matched.loc[valid], rtol=0, atol=1e-8).all():
+        raise ValueError("Carga observada dos episódios diverge da série auditada.")
+    frame = frame.loc[valid & frame["timestamp"].le(pd.Timestamp.now(tz="UTC"))].copy()
+    category = frame[["fim_de_semana", "eh_feriado", "eh_ponto_facultativo", "evento_versao_ids"]].drop_duplicates()
+    category[["day_type", "holiday_scope", "event_name"]] = pd.DataFrame(
+        [classify(row, observed.events) for row in category.itertuples(index=False)],
+        columns=["day_type", "holiday_scope", "event_name"], index=category.index,
+    )
+    frame = frame.merge(category, on=["fim_de_semana", "eh_feriado", "eh_ponto_facultativo", "evento_versao_ids"], validate="many_to_one")
+    frame["temperature_c"] = frame["timestamp"].map(observed.weather.groupby("timestamp")["temperature_c"].mean())
+    frame["absolute_error"] = (frame["observed_load"] - frame["predicted_load"]).abs()
+    frame["forecast_id"] = model
+    return frame
+
+
 @st.cache_resource(show_spinner=False)
 def legacy_bundle(path, digest):
     with tempfile.TemporaryDirectory() as temp:
@@ -286,3 +356,18 @@ def legacy_path():
         return local
     url = setting("ENERGY_FORECAST_DETAIL_URL")
     return _download(url, local.name, LEGACY_SHA, 24_000_000) if url else None
+
+
+def legacy_episode_source(bundle, stage, horizon):
+    split = {"teste_2025": "test_2025", "retrospectiva_2026": "forecast_2026"}.get(stage)
+    raw = bundle.prediction_rows
+    if raw.empty:
+        return raw
+    subset = raw.loc[raw["dataset_split"].eq(split) & raw["horizon_hours"].eq(horizon)]
+    return subset.assign(month_issued=subset["issued_at"].dt.tz_convert(TZ).dt.strftime("%Y-%m"))
+
+
+def legacy_episode_rows(bundle, source, month, first_step, last_step):
+    selected = source.loc[source["month_issued"].eq(month)]
+    rows = prepare_archive_evaluation(selected, bundle.observations, bundle.weather, bundle.calendar, REGION, "MWmed")
+    return rows.loc[rows["forecast_step"].between(first_step, last_step)]

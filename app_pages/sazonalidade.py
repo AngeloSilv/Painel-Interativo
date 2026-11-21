@@ -5,11 +5,11 @@ from datetime import timedelta
 import pandas as pd
 import streamlit as st
 
-from components.charts import calendar_profile_chart, daily_pattern_chart, history_chart, load_temperature_chart, monthly_chart, temperature_scatter, weekly_pattern_chart
+from components.charts import annual_chart, calendar_profile_chart, daily_pattern_chart, history_chart, load_temperature_chart, monthly_chart, temperature_scatter, weekly_pattern_chart
 from components.page_frame import DAY_LABELS, SCOPE_LABELS, page_header
 from components.tables import data_table
 from services.history_service import filter_history, region_history
-from services.pattern_service import aggregate_load_temperature, calendar_profile, join_weather, monthly_profile
+from services.pattern_service import aggregate_load_temperature, annual_profile, calendar_profile, join_weather, monthly_profile
 
 
 def render() -> None:
@@ -53,7 +53,11 @@ def _render_profiles(context=None) -> None:
         st.plotly_chart(daily_pattern_chart(history, settings.timezone, unit=settings.unit), width="stretch", config={"displaylogo": False})
     with right:
         st.plotly_chart(weekly_pattern_chart(history, settings.timezone, unit=settings.unit), width="stretch", config={"displaylogo": False})
-    st.plotly_chart(monthly_chart(monthly_profile(history, settings.timezone), unit=settings.unit), width="stretch", config={"displaylogo": False})
+    month_column, year_column = st.columns(2)
+    with month_column:
+        st.plotly_chart(monthly_chart(monthly_profile(history, settings.timezone), unit=settings.unit), width="stretch", config={"displaylogo": False})
+    with year_column:
+        st.plotly_chart(annual_chart(annual_profile(history, settings.timezone), unit=settings.unit), width="stretch", config={"displaylogo": False})
     st.subheader("Carga × Temperatura")
     climate_dates = history["timestamp"].dt.tz_convert(settings.timezone).dt.date
     first, last = climate_dates.min(), climate_dates.max()
@@ -67,6 +71,7 @@ def _render_profiles(context=None) -> None:
     with climate_controls[1]:
         frequency = st.radio(
             "Resolução temporal", ["daily", "weekly", "hourly"], horizontal=True,
+            help="A série horária mostra até as últimas 168 h do intervalo. A dispersão usa todos os pares selecionados.",
             format_func=lambda value: {"daily": "Diária", "weekly": "Semanal", "hourly": "Horária"}[value],
             key=f"climate_resolution_{settings.mode}",
         )
@@ -83,7 +88,6 @@ def _render_profiles(context=None) -> None:
             if frequency == "hourly" and (matched["timestamp"].max().value - matched["timestamp"].min().value) > 168 * 3_600_000_000_000:
                 boundary = pd.Timestamp(matched["timestamp"].max().value - 168 * 3_600_000_000_000, tz="UTC")
                 temporal = matched.loc[matched["timestamp"] > boundary]
-                st.caption("Série horária: últimos 168 h do intervalo. A dispersão mantém todos os pares selecionados.")
             aggregated = aggregate_load_temperature(temporal, frequency=frequency, timezone=settings.timezone)
             st.plotly_chart(load_temperature_chart(aggregated, unit=settings.unit, timezone=settings.timezone, frequency=frequency), width="stretch", config={"displaylogo": False})
     else:
@@ -93,7 +97,17 @@ def _render_profiles(context=None) -> None:
     if bundle.calendar.empty or profile.empty or profile["day_type"].eq("nao_informado").all():
         st.info("Calendário não informado para o período.")
     else:
-        st.plotly_chart(calendar_profile_chart(profile, unit=settings.unit), width="stretch", config={"displaylogo": False})
+        categories = sorted(set(zip(profile["day_type"], profile["holiday_scope"])))
+        selected = st.multiselect(
+            "Categorias de calendário", categories, default=categories,
+            format_func=lambda pair: DAY_LABELS[pair[0]] if pair[1] == "nenhum" else f"{DAY_LABELS[pair[0]]} · {SCOPE_LABELS[pair[1]]}",
+            key=f"calendar_categories_{settings.mode}_{period[0]}_{period[1]}_{selected_years}",
+        )
+        profile = profile.loc[pd.MultiIndex.from_frame(profile[["day_type", "holiday_scope"]]).isin(selected)]
+        if profile.empty:
+            st.info("Selecione uma categoria para exibir o perfil.")
+        else:
+            st.plotly_chart(calendar_profile_chart(profile, unit=settings.unit), width="stretch", config={"displaylogo": False})
         with st.expander("Amostra do calendário"):
             display = profile.copy()
             display["day_type"] = display["day_type"].map(DAY_LABELS).fillna("Não informado")

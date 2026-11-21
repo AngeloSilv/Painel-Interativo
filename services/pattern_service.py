@@ -58,6 +58,13 @@ def monthly_profile(observations: pd.DataFrame, timezone: str = DEFAULT_TIMEZONE
     ).reset_index()
 
 
+def annual_profile(observations: pd.DataFrame, timezone: str = DEFAULT_TIMEZONE) -> pd.DataFrame:
+    years = pd.to_datetime(observations["timestamp"], utc=True).dt.tz_convert(timezone).dt.year
+    return observations.groupby(years.rename("year"))["observed_load"].agg(
+        mean=_stable_mean, count="count",
+    ).reset_index()
+
+
 def _regional(frame: pd.DataFrame, region: str) -> pd.DataFrame:
     return frame.loc[frame["region"].eq(region)].copy() if "region" in frame else frame.copy()
 

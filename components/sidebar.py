@@ -35,11 +35,15 @@ def select_data_mode(
         options.append("Demonstração")
     if "source_mode" in st.session_state and st.session_state["source_mode"] not in options:
         st.session_state["source_mode"] = options[0]
+    labels = {"Catálogo V1–V5": "versions", "Demonstração": "demo",
+              "Arquivos dos modelos": "real", "Base do grupo (CSV)": "provided"}
+    if len(options) == 1:
+        return labels[options[0]]
     label = st.sidebar.selectbox(
         "Fonte", options, key="source_mode",
         help="As fontes são isoladas. Dados ausentes ou incompatíveis não são substituídos por simulação.",
     )
-    return {"Catálogo V1–V5": "versions", "Demonstração": "demo", "Arquivos dos modelos": "real", "Base do grupo (CSV)": "provided"}[label]
+    return labels[label]
 
 
 def render_sidebar(bundle: DataBundle, catalog: pd.DataFrame) -> SidebarSettings:

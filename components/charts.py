@@ -153,6 +153,10 @@ def daily_pattern_chart(observations: pd.DataFrame, timezone: str = DEFAULT_TIME
         connectgaps=False,
     ))
     figure.update_xaxes(tickmode="array", tickvals=list(range(0, 24, 3)), ticktext=[f"{hour:02d}h" for hour in range(0, 24, 3)])
+    daily = summary["mean"].dropna()
+    if not daily.empty and daily.min() < daily.max():
+        for label, hour, offset in (("Maior média", daily.idxmax(), -30), ("Menor média", daily.idxmin(), 28)):
+            figure.add_annotation(x=hour, y=daily[hour], text=f"{label} · {hour:02d} h", showarrow=True, ay=offset)
     figure.update_layout(showlegend=False, margin={"b": 48})
     return figure
 
@@ -361,4 +365,15 @@ def monthly_chart(monthly: pd.DataFrame, unit: str = "MWmed") -> go.Figure:
     ))
     figure.update_xaxes(type="date", tickformat="%m/%Y")
     figure.update_layout(showlegend=False, margin={"b": 48})
+    return figure
+
+
+def annual_chart(annual: pd.DataFrame, unit: str = "MWmed") -> go.Figure:
+    figure = _base_chart("Média anual no período selecionado", x_title="Ano", y_title=f"Carga média ({unit})")
+    figure.add_trace(go.Bar(
+        x=annual["year"].astype(str).tolist(), y=annual["mean"], customdata=annual["count"],
+        marker_color=TEAL,
+        hovertemplate="%{x}<br>Carga média: <b>%{y:,.2f} " + unit + "</b><br>%{customdata:,.0f} horas observadas<extra></extra>",
+    ))
+    figure.update_xaxes(type="category")
     return figure
