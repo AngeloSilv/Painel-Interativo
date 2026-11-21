@@ -22,7 +22,7 @@ def choice(label, options, key, labels=None):
 
 
 def header(title):
-    st.title(title)
+    st.header(title)
     st.caption("ONS Sudeste/Centro-Oeste · ONS_SECO_piloto · MWmed")
 
 
@@ -33,7 +33,7 @@ def _legacy(path, sha):
 
 
 def render_explorer(legacy_render):
-    header("Previsões")
+    header("Explorador de Previsões")
     available = ["V5", "V1"] if versions.legacy_available() else ["V5"]
     version = choice("Versão", available, "catalog_explorer_version")
     try:
@@ -75,7 +75,7 @@ def _render_v5(*, legacy_available):
         history_hours = st.selectbox("Histórico anterior", [72, 48, 120, 168], format_func=lambda v: f"{v} h", key="v5_explorer_history")
     entries = {e["month"]: e for e in index if (e["scenario"], e["stage"], e["horizon"]) == (scenario, stage, horizon)}
     with st.expander("Detalhes metodológicos"):
-        st.write("V2–V4 têm apenas métricas agregadas, em Desempenho e Erros.")
+        st.write("V2–V4 têm apenas métricas agregadas, em Avaliação de Desempenho e Erros.")
         if not legacy_available:
             st.write("As previsões horárias da V1 estão disponíveis em instalações com o ZIP legado.")
         st.write("A V5 reúne previsões retrospectivas sobre snapshots fechados.")
@@ -157,7 +157,7 @@ def _filter(frame, horizon, stage, scenario):
 
 
 def render_evolution():
-    header("Desempenho e Erros")
+    header("Avaliação de Desempenho e Erros")
     st.subheader("Evolução dos Modelos")
     try:
         tables = versions.metric_tables(str(versions.root()))

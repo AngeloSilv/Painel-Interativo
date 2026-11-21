@@ -35,7 +35,7 @@ def render() -> None:
 
         render_evolution()
         return
-    bundle, settings = page_header("Desempenho e Erros")
+    bundle, settings = page_header("Avaliação de Desempenho e Erros")
     catalog = get_catalog(bundle, settings)
     if catalog.empty:
         st.info("Nenhuma previsão disponível para avaliação.")

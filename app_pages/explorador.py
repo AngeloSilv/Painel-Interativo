@@ -24,7 +24,7 @@ def render() -> None:
 
 
 def _render_legacy(context=None, catalog=None) -> None:
-    bundle, settings = context or page_header("Previsões")
+    bundle, settings = context or page_header("Explorador de Previsões")
     candidates = get_catalog(bundle, settings) if catalog is None else catalog
     controls = st.columns([1.15, 1, 1])
     available_splits = set(candidates["dataset_split"])

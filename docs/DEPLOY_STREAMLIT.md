@@ -1,4 +1,4 @@
-# Publicação no Streamlit Community Cloud
+# Publicação do Monitor de Previsão no Streamlit Community Cloud
 
 Para o catálogo experimental regional V1–V5, use o [guia específico de hospedagem](INTEGRACAO_VERSOES.md#hospedagem). As instruções abaixo documentam a configuração anterior do leitor municipal.
 
@@ -18,12 +18,12 @@ O código pode inicializar em ambiente limpo, sem o ZIP privado e sem fixtures. 
 | Python version | **3.13**, selecionar em Advanced settings |
 | Versão local efetivamente verificada | Python **3.13.14**, Windows x86-64 |
 | Dependências da aplicação | `requirements.txt` |
-| App URL desejada | `energy-forecast-tcc.streamlit.app`, se disponível |
+| App URL desejada no plano original | `energy-forecast-tcc.streamlit.app`, se disponível |
 | Visibilidade do aplicativo | Pública, sem autenticação do visitante |
 | Secrets necessários | Nenhum no funcionamento atual |
 | Demonstração | Desativada: `ENERGY_FORECAST_ALLOW_DEMO` ausente ou falsa |
 
-A disponibilidade do subdomínio não foi consultada nem reservada. A visibilidade do repositório GitHub será decidida pelo responsável; ela não foi alterada. A visibilidade pública do aplicativo deve ser conferida separadamente nas configurações de compartilhamento.
+O subdomínio acima é um identificador técnico do plano original. A identidade provisória exibida pela aplicação é **Monitor de Previsão**. A disponibilidade do subdomínio não foi consultada nem reservada. A visibilidade do repositório GitHub será decidida pelo responsável; ela não foi alterada. A visibilidade pública do aplicativo deve ser conferida separadamente nas configurações de compartilhamento.
 
 `.python-version` documenta a série de Python para ferramentas locais. A seleção de Python na hospedagem é feita na interface de Advanced settings; não depender desse arquivo ou de um `runtime.txt` para configurá-la. As instruções seguem a [documentação oficial de deploy](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/deploy).
 

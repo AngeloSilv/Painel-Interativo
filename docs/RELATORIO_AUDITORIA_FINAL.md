@@ -1,8 +1,8 @@
-# Auditoria final do Energy Forecast
+# Auditoria final do Monitor de Previsão
 
 ## Escopo verificado
 
-A [matriz de requisitos](MATRIZ_REQUISITOS.md) tem **134 requisitos**. São **129 dentro do escopo**, sendo 105 obrigatórios, 16 complementares e 8 condicionados aos dados. Dos cinco restantes, dois estão fora do escopo do painel e três são incompatíveis ou redundantes. A checklist original R001–R157 não estava disponível. A contagem usa a decomposição de todos os grupos do pedido de auditoria.
+A auditoria original registrou **134 requisitos** na [matriz](MATRIZ_REQUISITOS.md). Eram **129 dentro do escopo**, sendo 105 obrigatórios, 16 complementares e 8 condicionados aos dados. Dos cinco restantes, dois estavam fora do escopo do painel e três eram incompatíveis ou redundantes. A checklist original R001–R157 não estava disponível. A contagem usa a decomposição de todos os grupos do pedido de auditoria. A identidade provisória foi registrada posteriormente como D16.
 
 A revisão consultou a monografia de 21 páginas, o inventário `RELATORIO_VERSOES_MODELOS.md`, os dois ZIPs disponíveis, seus manifestos, o código, a documentação e os testes. A monografia (§§1.2–1.6) pede delimitação territorial pela série efetiva, análise temporal e meteorológica, avaliação posterior ao treino com referências e discussão dos limites. Os capítulos de desenvolvimento, testes e resultados ainda aparecem como títulos. A entrega independente V5 tem o mesmo SHA-256 do membro V5 no pacote consolidado. A leitura não alterou os ZIPs.
 
@@ -10,12 +10,18 @@ A revisão consultou a monografia de 21 páginas, o inventário `RELATORIO_VERSO
 
 | Área | Implementação anterior | O que a auditoria entregou |
 | --- | --- | --- |
-| Previsões | Filtros de t₀, horizonte, cenário, etapa e estimador na V5. Detalhe V1 disponível com o legado. Histórico, previsto, observado e referências. | Identificação das unidades na tabela, observado e sazonal semanal no leitor legado, contagem de calendário e MAE com denominador. A V5 oculta observações posteriores ao relógio da execução. A validação aparece no leitor quando existem emissões dessa etapa. |
-| Desempenho e Erros | Agregados V1–V5, curva por passo, papéis dos estimadores e V4 × V5 por pares comuns. | Filtro de versão com cenários compatíveis, denominador do MAPE, transição 24/25 h, horizontes e referências lado a lado. Deltas relativos V4 × V5 usam o valor V4 nos pares comuns. Episódios consultáveis V1/V5, com recorte mensal, filtros no alvo e exportação. Resumo das mudanças técnicas recolhível. |
+| Explorador de Previsões | Filtros de t₀, horizonte, cenário, etapa e estimador na V5. Detalhe V1 disponível com o legado. Histórico, previsto, observado e referências. | Identificação das unidades na tabela, observado e sazonal semanal no leitor legado, contagem de calendário e MAE com denominador. A V5 oculta observações posteriores ao relógio da execução. A validação aparece no leitor quando existem emissões dessa etapa. |
+| Avaliação de Desempenho e Erros | Agregados V1–V5, curva por passo, papéis dos estimadores e V4 × V5 por pares comuns. | Filtro de versão com cenários compatíveis, denominador do MAPE, transição 24/25 h, horizontes e referências lado a lado. Deltas relativos V4 × V5 usam o valor V4 nos pares comuns. Episódios consultáveis V1/V5, com recorte mensal, filtros no alvo e exportação. Resumo das mudanças técnicas recolhível. |
 | Sazonalidade, Clima e Calendário | Perfis horário, semanal e mensal, carga × temperatura, resolução climática e inventário versionado. | Médias anuais com contagem de horas, extremos do perfil horário e seleção de categorias de calendário por tipo e âmbito. |
 | Integridade e interface | Parquet mensal, cache, chaves de métrica e forma de distribuição compacta. | Validação de SHA-256 e contagem dos CSVs compactos durante o carregamento, mais domínio de passos/blocos. Os ajustes locais de navegação no topo, título **Previsões** e textos recolhidos foram preservados. |
 
 A comparação entre horizontes é descritiva, com os denominadores de cada modelo e bloco. O teste dos dois modelos de 24 h e 48 h não prova equivalência entre o modelo de 24 h e o primeiro bloco de 48 h. O seletor de versão destaca um recorte, enquanto a visão de evolução reúne as versões elegíveis no cenário escolhido.
+
+## Identidade provisória
+
+O título do navegador e o cabeçalho usam **Monitor de Previsão**, com o subtítulo *Painel Interativo de Previsão de Demanda Energética* na interface. O grupo ainda definirá o título da monografia. As variáveis `ENERGY_FORECAST_*`, o caminho de cache `energy-forecast-versions` e o identificador de URL do plano de deploy foram preservados para compatibilidade.
+
+Na revisão da identidade, os 466 testes passaram no Windows, inclusive em uma cópia limpa sem as bases privadas. O teste de inicialização retornou HTTP 200 nas três rotas. O navegador exibiu o novo nome, os títulos das três abas, os gráficos e a seleção de 48 h. A busca no conteúdo versionado não encontrou o nome de apresentação anterior.
 
 ## Evidência de dados e desempenho
 

@@ -45,7 +45,7 @@ def format_timestamp(value: pd.Timestamp, timezone: str = "America/Sao_Paulo") -
 
 def page_header(title: str) -> tuple[DataBundle, SidebarSettings]:
     bundle, settings = get_context()
-    st.title(title)
+    st.header(title)
     st.caption(f"{TARGET_REGION}, RJ · {settings.unit} · America/Sao_Paulo")
     audit = bundle.provenance.get("geographic_audit") or geographic_status(bundle)
     if audit["status"] == "incompatible":

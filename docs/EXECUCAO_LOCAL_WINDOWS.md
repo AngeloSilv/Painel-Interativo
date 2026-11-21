@@ -1,4 +1,4 @@
-# Execução local no Windows
+# Execução local do Monitor de Previsão no Windows
 
 Instale Git e Python 3.13. A versão testada é Python 3.13.14. Após a integração do painel à branch de produção, clone o repositório oficial:
 

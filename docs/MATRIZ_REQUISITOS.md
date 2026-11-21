@@ -1,4 +1,4 @@
-# Matriz de requisitos do Energy Forecast
+# Matriz de requisitos do Monitor de Previsão
 
 A checklist numerada R001–R157 não foi localizada. Os IDs abaixo correspondem à decomposição do pedido atual. A situação inicial inclui os ajustes locais de navegação e limpeza visual feitos antes da auditoria.
 
@@ -101,6 +101,7 @@ A monografia disponível (21 páginas, §§1.2–1.6) orienta a leitura dos requ
 | D13 | Poluição visual baixa | Pedido §3.D | CP | OK | estrutura das abas | Manter descrições e diagnósticos recolhidos | OK | U |
 | D14 | Textos redundantes | Pedido §3.D | I | OK | mudança local anterior ao início da auditoria | Preservar remoção das legendas explicativas soltas | OK | U |
 | D15 | Cores e espaçamento | Pedido §3.D | CP | OK | config.toml, charts e CSS | Preservados | OK | U |
+| D16 | Nome provisório e subtítulo consistentes | Padronização da identidade | O | Parcial | `APP_NAME` e `APP_SUBTITLE` em `streamlit_app.py` | Alinhar títulos, cabeçalho, navegação, README e guias | OK | AppTest, navegação no navegador e inspeção das referências versionadas |
 | E01 | Proveniência da série e dos resultados | Pedido §3.E | O | OK | manifestos e inventário | Preservar identificação | OK | D |
 | E02 | Alvo territorial de carga | Pedido §3.E | O | OK | TARGET, monografia §§1.2 e 1.5 | Identificar ONS SE/CO. Documentar demanda municipal em aberto | OK regional, municipal bloqueado | D |
 | E03 | Unidade de medida | Pedido §3.E | O | OK | check_identity e contratos | Verificar MWmed no manifesto e nos agregados | OK | V, D |

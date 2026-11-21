@@ -11,9 +11,13 @@ from components.sidebar import render_sidebar, select_data_mode
 from services.app_data import has_model_files, imported_config_path, load_app_context
 
 
+APP_NAME = "Monitor de Previsão"
+APP_SUBTITLE = "Painel Interativo de Previsão de Demanda Energética"
+
+
 def main() -> None:
     st.set_page_config(
-        page_title="Energia • Painel de previsão",
+        page_title=APP_NAME,
         page_icon=":material/electric_bolt:",
         layout="wide",
         initial_sidebar_state="auto",
@@ -52,12 +56,14 @@ def main() -> None:
 
     navigation = st.navigation(
         [
-            st.Page(explorador.render, title="Previsões", icon=":material/show_chart:", url_path="explorador", default=True),
-            st.Page(desempenho.render, title="Desempenho e Erros", icon=":material/analytics:", url_path="desempenho"),
+            st.Page(explorador.render, title="Explorador de Previsões", icon=":material/show_chart:", url_path="explorador", default=True),
+            st.Page(desempenho.render, title="Avaliação de Desempenho e Erros", icon=":material/analytics:", url_path="desempenho"),
             st.Page(sazonalidade.render, title="Sazonalidade, Clima e Calendário", icon=":material/calendar_month:", url_path="sazonalidade"),
         ],
         position="top",
     )
+    st.title(APP_NAME, anchor=False)
+    st.markdown(f"*{APP_SUBTITLE}*")
     navigation.run()
 
 

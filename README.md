@@ -1,8 +1,8 @@
-# Painel-Interativo
+# Monitor de Previsão
 
-## TCC Energy Forecast — Rio de Janeiro
+*Painel Interativo de Previsão de Demanda Energética*
 
-Aplicação do TCC de Ciência da Computação da Universidade Veiga de Almeida. O estudo tem o Rio de Janeiro como contexto e o catálogo experimental usa a série ONS Sudeste/Centro-Oeste, em MWmed.
+Monitor de Previsão é o nome provisório da aplicação do TCC de Ciência da Computação da Universidade Veiga de Almeida. O estudo tem o Rio de Janeiro como contexto e o catálogo experimental usa a série ONS Sudeste/Centro-Oeste, em MWmed.
 
 O painel mantém fontes isoladas: **Base do grupo (CSV)** e **Arquivos dos modelos (JSON/CSV)**. A demonstração é uma ferramenta local/de testes que precisa ser habilitada explicitamente. Seus dados artificiais não representam medições, calendário oficial ou desempenho dos modelos do TCC.
 
@@ -92,13 +92,15 @@ Carregamentos padrão e catálogo usam `st.cache_data` com assinatura dos arquiv
 
 ## As três abas
 
-1. **Previsões.** A V5 abre por padrão. Selecione hipótese, conjunto, horizonte, mês, estimador e emissão. O gráfico combina histórico, previsão, observado e referências. A tabela recolhível reúne valores horários, resumo de calendário e exportação. A V1 aparece quando o ZIP legado está configurado.
-2. **Desempenho e Erros.** Consulte as métricas fornecidas V1–V5 por versão, hipótese, etapa, horizonte e bloco. Veja os denominadores de MAE/RMSE e MAPE, a curva por passo, os dois horizontes com referências e o recorte pareado V4 × V5. Os episódios V1/V5 usam um mês de emissão de cada vez, com filtros no alvo por dia da semana, calendário e temperatura.
+1. **Explorador de Previsões.** A V5 abre por padrão. Selecione hipótese, conjunto, horizonte, mês, estimador e emissão. O gráfico combina histórico, previsão, observado e referências. A tabela recolhível reúne valores horários, resumo de calendário e exportação. A V1 aparece quando o ZIP legado está configurado.
+2. **Avaliação de Desempenho e Erros.** Consulte as métricas fornecidas V1–V5 por versão, hipótese, etapa, horizonte e bloco. Veja os denominadores de MAE/RMSE e MAPE, a curva por passo, os dois horizontes com referências e o recorte pareado V4 × V5. Os episódios V1/V5 usam um mês de emissão de cada vez, com filtros no alvo por dia da semana, calendário e temperatura.
 3. **Sazonalidade, Clima e Calendário.** Compare perfis horários e semanais, médias mensais e anuais, dispersão e séries de carga e temperatura. Filtre as categorias de calendário por tipo e âmbito. O painel exibe o número de horas efetivamente observadas nos períodos disponíveis de 2024 a 2026.
 
 A navegação fica no topo. O seletor de fonte só aparece quando a instalação oferece opções adicionais. Explicações ficam nas ajudas dos controles e em **Detalhes metodológicos**. As exportações preservam a precisão e os identificadores da origem.
 
 ## Arquitetura
+
+O nome e o subtítulo do aplicativo são definidos por `APP_NAME` e `APP_SUBTITLE` em `streamlit_app.py`. As variáveis `ENERGY_FORECAST_*` e o diretório temporário `energy-forecast-versions` conservam seus nomes para que configurações instaladas e caches existentes continuem funcionando.
 
 ```text
 streamlit_app.py             # Configuração e navegação st.Page/st.navigation
