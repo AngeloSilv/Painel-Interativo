@@ -283,7 +283,7 @@ def temperature_scatter(frame: pd.DataFrame, unit: str = "MWmed", timezone: str 
         figure.add_trace(go.Scattergl(
             x=rows["temperature_c"], y=rows["observed_load"], mode="markers", name=str(station),
             customdata=time_labels,
-            marker={"color": colors[index % len(colors)], "opacity": 0.30, "size": 4},
+            marker={"color": colors[index % len(colors)], "opacity": 0.55, "size": 4},
             hovertemplate="%{customdata}<br>Temperatura: %{x:.1f} °C<br>Carga: <b>%{y:,.2f} " + unit + "</b><extra>%{fullData.name}</extra>",
         ))
     figure.update_layout(showlegend=frame["station"].nunique() > 1 if "station" in frame else False)
