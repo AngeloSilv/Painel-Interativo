@@ -6,15 +6,17 @@ Aplicação do TCC de Ciência da Computação da Universidade Veiga de Almeida.
 
 O painel mantém fontes isoladas: **Base do grupo (CSV)** e **Arquivos dos modelos (JSON/CSV)**. A demonstração é uma ferramenta local/de testes que precisa ser habilitada explicitamente. Seus dados artificiais não representam medições, calendário oficial ou desempenho dos modelos do TCC.
 
-Repositório oficial [AngeloSilv/Painel-Interativo](https://github.com/AngeloSilv/Painel-Interativo).
+Repositório oficial [tccilda/Painel](https://github.com/tccilda/Painel).
 
 ## Catálogo V1–V5
 
 A fonte padrão mostra a V5 e o histórico experimental dos modelos de 24h e 48h. As métricas, a série e o calendário já acompanham o projeto. A carga da entrega corresponde ao ONS Sudeste/Centro-Oeste. Prepare o detalhe V1/V5 e configure a hospedagem seguindo o [guia de integração das versões](docs/INTEGRACAO_VERSOES.md).
 
+A [revisão de aderência à monografia](docs/REVISAO_MONOGRAFIA.md) liga os objetivos do TCC às três abas e registra os limites da avaliação.
+
 ## Situação da publicação
 
-O checkout abre o catálogo regional com métricas e série auditada. O acesso às emissões detalhadas depende das partições descritas no guia. O [guia de implantação](docs/DEPLOY_STREAMLIT.md) descreve os parâmetros e a verificação do acesso público.
+O checkout abre o catálogo regional com métricas e série auditada. O Explorador abre com uma amostra de 12 emissões reais. A consulta integral V1/V5 usa as partições descritas no guia. O [guia de implantação](docs/DEPLOY_STREAMLIT.md) descreve os parâmetros e a verificação do acesso público.
 
 ## Proveniência do pacote legado
 

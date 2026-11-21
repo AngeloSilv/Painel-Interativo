@@ -6,7 +6,6 @@ import pandas as pd
 import streamlit as st
 
 from services.data_loader import DataBundle
-from services.geography_service import TARGET_REGION
 
 
 @dataclass(frozen=True)
@@ -14,19 +13,24 @@ class SidebarSettings:
     mode: str
     horizon_hours: int
     region: str | None
-    region_label: str
     timezone: str = "America/Sao_Paulo"
     unit: str = "MWmed"
     station: str | None = None
 
 
-def select_data_mode(has_imported: bool = False, allow_demo: bool = False, has_versions: bool = False) -> str:
+def select_data_mode(
+    has_imported: bool = False, allow_demo: bool = False, has_versions: bool = False,
+    has_model_files: bool = False,
+) -> str:
     """Demonstração exige habilitação explícita, sem fallback de fontes reais."""
-    options = ["Arquivos dos modelos", "Base do grupo (CSV)"]
-    if has_imported:
-        options.reverse()
     if has_versions:
-        options.insert(0, "Catálogo V1–V5")
+        options = ["Catálogo V1–V5"]
+        if has_model_files:
+            options.append("Arquivos dos modelos")
+    else:
+        options = ["Arquivos dos modelos"]
+        if has_imported:
+            options.insert(0, "Base do grupo (CSV)")
     if allow_demo:
         options.append("Demonstração")
     if "source_mode" in st.session_state and st.session_state["source_mode"] not in options:
@@ -68,4 +72,4 @@ def render_sidebar(bundle: DataBundle, catalog: pd.DataFrame) -> SidebarSettings
             help="Média das estações disponíveis em cada instante. Estações externas ou sem localização verificada não entram na visão municipal.",
         )
         station = None if selected == "Média disponível" else selected
-    return SidebarSettings(bundle.mode, 24, region, TARGET_REGION, unit=unit, station=station)
+    return SidebarSettings(bundle.mode, 24, region, unit=unit, station=station)

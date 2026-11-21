@@ -9,7 +9,7 @@ from components.charts import calendar_profile_chart, daily_pattern_chart, histo
 from components.page_frame import DAY_LABELS, SCOPE_LABELS, page_header
 from components.tables import data_table
 from services.history_service import filter_history, region_history
-from services.pattern_service import aggregate_load_temperature, calendar_profile, join_weather, seasonal_profiles
+from services.pattern_service import aggregate_load_temperature, calendar_profile, join_weather, monthly_profile
 
 
 def render() -> None:
@@ -25,7 +25,7 @@ def _render_profiles(context=None) -> None:
     bundle, settings = context or page_header("Sazonalidade, Clima e Calendário")
     observations = region_history(bundle.observations, settings.region, unit=settings.unit)
     if observations.empty:
-        st.info("Nenhuma carga municipal observada disponível.")
+        st.info("Nenhuma carga observada disponível.")
         return
     local = observations["timestamp"].dt.tz_convert(settings.timezone)
     observations = observations.loc[local.dt.year.between(2024, 2026)]
@@ -47,14 +47,13 @@ def _render_profiles(context=None) -> None:
     if history.empty:
         st.info("Nenhuma observação no período selecionado.")
         return
-    profiles = seasonal_profiles(history, settings.timezone)
     st.subheader("Sazonalidade")
     left, right = st.columns(2)
     with left:
         st.plotly_chart(daily_pattern_chart(history, settings.timezone, unit=settings.unit), width="stretch", config={"displaylogo": False})
     with right:
         st.plotly_chart(weekly_pattern_chart(history, settings.timezone, unit=settings.unit), width="stretch", config={"displaylogo": False})
-    st.plotly_chart(monthly_chart(profiles["monthly"], unit=settings.unit), width="stretch", config={"displaylogo": False})
+    st.plotly_chart(monthly_chart(monthly_profile(history, settings.timezone), unit=settings.unit), width="stretch", config={"displaylogo": False})
     st.subheader("Carga × Temperatura")
     climate_dates = history["timestamp"].dt.tz_convert(settings.timezone).dt.date
     first, last = climate_dates.min(), climate_dates.max()
@@ -75,7 +74,7 @@ def _render_profiles(context=None) -> None:
         climate_history = filter_history(history, climate_period[0], climate_period[1], settings.timezone)
         matched = join_weather(climate_history, bundle.weather, settings.region, station=settings.station, timezone=settings.timezone)
         if matched.empty:
-            st.info("Sem temperatura municipal observada correspondente ao intervalo.")
+            st.info("Sem temperatura observada correspondente ao intervalo.")
         else:
             scatter = temperature_scatter(matched, unit=settings.unit, timezone=settings.timezone)
             scatter.update_layout(title_text=None, margin={"t": 20})
@@ -89,10 +88,10 @@ def _render_profiles(context=None) -> None:
             st.plotly_chart(load_temperature_chart(aggregated, unit=settings.unit, timezone=settings.timezone, frequency=frequency), width="stretch", config={"displaylogo": False})
     else:
         st.info("Selecione as duas datas do intervalo climático.")
-    st.subheader("Impacto do Calendário")
+    st.subheader("Carga por tipo de dia")
     profile = calendar_profile(history, bundle.calendar, settings.region, settings.timezone)
     if bundle.calendar.empty or profile.empty or profile["day_type"].eq("nao_informado").all():
-        st.info("Calendário municipal não informado para o período.")
+        st.info("Calendário não informado para o período.")
     else:
         st.plotly_chart(calendar_profile_chart(profile, unit=settings.unit), width="stretch", config={"displaylogo": False})
         with st.expander("Amostra do calendário"):
@@ -104,12 +103,13 @@ def _render_profiles(context=None) -> None:
         st.write("Perfis são médias das cargas horárias disponíveis, sem extrapolar períodos incompletos. Contagens estão no hover. As análises usam somente 2024–2026 e observações já ocorridas.")
         st.write("A dispersão mantém todos os pares exatos do intervalo climático, com transparência e renderização WebGL. Não há interpolação, imputação ou conclusão causal.")
         st.write("A série climática usa médias somente dos pares disponíveis: dia local ou semana iniciada na segunda-feira. Períodos sem pares permanecem como lacunas. Dois eixos preservam as unidades de carga e temperatura; agregações são apenas visuais e não alteram modelos ou métricas.")
-        st.write(f"Estação: {settings.station or 'média das estações municipais disponíveis em cada instante'}. O número de estações pode variar. A601 (Seropédica) não integra a visão municipal.")
+        st.write(f"Estação: {settings.station or 'média das estações disponíveis em cada instante'}. O número de estações pode variar.")
         st.write("Sazonalidade e calendário usam o período da análise; clima usa seu intervalo próprio. Na resolução horária, a série temporal é limitada a 168 h para manter a leitura.")
         if bundle.mode == "v5":
             st.write("A classificação horária vem dos IDs de evento conhecidos naquele instante.")
         st.write("Prioridade do calendário: feriado > ponto facultativo > fim de semana > dia útil. O ponto facultativo aplica-se ao âmbito administrativo indicado, sem implicar paralisação de toda a economia. Datas sem classificação permanecem não informadas.")
-        st.write("A abrangência e as datas devem ser sustentadas pelas fontes oficiais. A auditoria encontrou eventos federais e omissões municipais no pacote recebido; esse pacote está bloqueado na visão municipal.")
+        if bundle.mode == "v5":
+            st.write("A621 fica na Vila Militar (Rio de Janeiro) e A601 em Seropédica. Os dados locais contextualizam uma série de carga regional.")
         if bundle.mode == "demo":
             st.write("O calendário e todas as demais variáveis são sintéticos; não são fontes oficiais.")
     with st.expander("Histórico horário"):

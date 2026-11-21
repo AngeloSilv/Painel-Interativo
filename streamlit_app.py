@@ -8,7 +8,7 @@ from services import model_versions
 
 from app_pages import desempenho, explorador, sazonalidade
 from components.sidebar import render_sidebar, select_data_mode
-from services.app_data import imported_config_path, load_app_context
+from services.app_data import has_model_files, imported_config_path, load_app_context
 
 
 def main() -> None:
@@ -38,6 +38,7 @@ def main() -> None:
     mode = select_data_mode(
         has_imported=imported_config_path().is_file(),
         has_versions=model_versions.enabled(),
+        has_model_files=has_model_files(),
         allow_demo=os.environ.get("ENERGY_FORECAST_ALLOW_DEMO", "").strip().lower() == "true",
     )
     st.session_state["version_catalog_mode"] = mode == "versions"

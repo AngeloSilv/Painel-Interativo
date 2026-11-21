@@ -95,7 +95,7 @@ st.session_state["forecast_catalog"] = forecast_catalog(bundle)
 st.session_state["original_observations"] = bundle.observations.copy(deep=True)
 st.session_state["original_prediction_rows"] = bundle.prediction_rows.copy(deep=True)
 st.session_state["original_reported_metrics"] = bundle.reported_metrics.copy(deep=True)
-st.session_state["app_settings"] = SidebarSettings("provided", {horizon}, REGION, REGION, unit="MWmed")
+st.session_state["app_settings"] = SidebarSettings("provided", {horizon}, REGION, unit="MWmed")
 if "selected_horizon" not in st.session_state:
     st.session_state["selected_horizon"] = {horizon}
 render()

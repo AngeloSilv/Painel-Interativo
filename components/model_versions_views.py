@@ -1,5 +1,6 @@
-from datetime import timedelta
 """Controles e visões do catálogo experimental V1–V5."""
+
+from datetime import timedelta
 from urllib.error import URLError
 
 import pandas as pd
@@ -33,10 +34,12 @@ def _legacy(path, sha):
 
 def render_explorer(legacy_render):
     header("Explorador de Previsões")
-    version = choice("Versão", ["V5", "V1", "V2", "V3", "V4"], "catalog_explorer_version")
-    if version in ("V2", "V3", "V4"):
-        st.info(f"{version} possui métricas agregadas em Desempenho e Erros. O pacote não inclui previsões por emissão dessa versão.")
-        return
+    available = ["V5", "V1"] if versions.legacy_available() else ["V5"]
+    version = choice("Versão", available, "catalog_explorer_version")
+    caption = "V2–V4 têm apenas métricas agregadas, em Desempenho e Erros."
+    if "V1" not in available:
+        caption += " O detalhe V1 está disponível em instalações com o ZIP legado."
+    st.caption(caption)
     try:
         if version == "V1":
             from components.sidebar import SidebarSettings
@@ -52,7 +55,7 @@ def render_explorer(legacy_render):
             st.caption("V1 · 2025/2026 · carimbo original interpretado em São Paulo para exibição")
             with st.expander("Limitações da V1"):
                 st.write("O fuso original não está documentado. O horário exibido usa uma interpretação do leitor legado. A emissão e o alvo não devem ser pareados com V2–V5 por esses carimbos.")
-            settings = SidebarSettings("v1", 24, versions.REGION, versions.REGION)
+            settings = SidebarSettings("v1", 24, versions.REGION)
             legacy_render((bundle, settings), catalog)
             return
         _render_v5()
@@ -65,6 +68,9 @@ def _render_v5():
     index = versions.detail_index()
     if not index:
         st.info("O índice das previsões detalhadas V5 está indisponível. As métricas e a série auditada continuam disponíveis nas outras abas.")
+        return
+    if index[0]["preview"]:
+        st.caption("Amostra V5: 12 emissões reais do manifesto, uma por hipótese, etapa e horizonte. As métricas usam as amostras completas declaradas.")
     columns = st.columns([1.3, 1.2, 0.8, 0.9])
     with columns[0]:
         scenario = choice("Hipótese de horário", list(versions.SCENARIOS)[:2], "v5_explorer_scenario", versions.SCENARIOS)
@@ -78,6 +84,7 @@ def _render_v5():
     with st.expander("Detalhes metodológicos"):
         st.write("As duas hipóteses têm o mesmo estatuto. O carimbo oficial e sua borda seguem indeterminados. Emissões e alvos são armazenados em UTC e exibidos em America/Sao_Paulo. Eventos versionados refletem a informação disponível na origem segundo a hipótese do pacote.")
     if not entries:
+        st.info("Nenhuma emissão no recorte selecionado.")
         return
     month = choice("Mês da emissão", sorted(entries, reverse=True), "v5_month")
     entry = entries[month]
@@ -178,7 +185,7 @@ def render_evolution():
         return
     display = population.set_index("versao").reindex(order).reset_index()
     display["versao"] = display["versao"].str.upper()
-    st.caption("Métricas publicadas por versão. A comparabilidade por pares é demonstrada apenas na seção V4 × V5 abaixo.")
+    st.caption("Métricas publicadas por versão. O recorte V4 × V5 usa a interseção de pares fornecida na seção abaixo.")
     if display[metric].notna().any():
         fig = px.scatter(display, x="versao", y=metric, hover_data=["modelo", "n_pares"],
                          labels={"versao": "Versão", metric: versions.METRICS[metric]})
@@ -268,7 +275,7 @@ def render_seasonality(render_profiles):
     except (OSError, ValueError, KeyError) as error:
         st.warning(f"Série auditada indisponível: {error}")
         return
-    settings = SidebarSettings(scenario, 24, versions.REGION, versions.REGION,
+    settings = SidebarSettings(scenario, 24, versions.REGION,
                                station=None if station == "Média disponível" else station)
     bundle = DataBundle("v5", [], value.observations, [], weather=value.weather, calendar=value.calendar)
     render_profiles((bundle, settings))

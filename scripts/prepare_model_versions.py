@@ -157,12 +157,52 @@ def build(source, target):
         print(f"{len(entries)} partições, {sum(e['rows'] for e in entries)} linhas. SHA-256 do índice: {digest(target / 'index.json')}")
 
 
+def build_preview(directory, target):
+    """Publica somente as emissões selecionadas identificadas no manifesto V5."""
+    from collections import defaultdict
+
+    index = json.loads((directory / "index.json").read_text(encoding="utf-8"))
+    meta = json.loads((SMALL / V5 / "MANIFESTO_v5.json").read_text(encoding="utf-8"))
+    by_key = {(e["horizon"], e["scenario"], e["stage"], e["month"]): e for e in index["partitions"]}
+    groups = defaultdict(list)
+    for sample in meta["amostras_leitor"]:
+        issue = sample["origem_t"]
+        month = pd.Timestamp(issue).tz_convert("America/Sao_Paulo").strftime("%Y-%m")
+        key = (sample["horizonte_h"], sample["cenario"], sample["etapa"], month)
+        groups[key].append(issue)
+    target.mkdir(parents=True, exist_ok=True)
+    entries = []
+    for key, issues in groups.items():
+        entry = by_key[key]
+        source = directory / entry["file"]
+        if digest(source) != entry["sha256"]:
+            raise ValueError(f"Partição alterada: {source.name}.")
+        view = pd.read_parquet(source, filters=[("origem_t", "in", issues), ("eh_selecionado", "=", 1)])
+        for issue in issues:
+            steps = view.loc[view["origem_t"].eq(issue), "passo_h"]
+            if sorted(steps.tolist()) != list(range(1, key[0] + 1)):
+                raise ValueError(f"Emissão selecionada inválida: {issue}.")
+        path = target / source.name
+        view.to_parquet(path, index=False, compression="zstd")
+        entries.append({**entry, "sha256": digest(path), "bytes": path.stat().st_size, "rows": len(view)})
+    value = {"schema": 1, "source": index["source"], "coverage": "manifest_samples", "partitions": entries}
+    (target / "index.json").write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8", newline="\n")
+    print(f"Prévia: {len(entries)} partições, {sum(e['rows'] for e in entries)} alvos.")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("zip", type=Path)
-    parser.add_argument("--small", action="store_true", help="Atualiza somente os CSVs compactos e manifestos do projeto.")
+    parser.add_argument("zip", type=Path, nargs="?")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--small", action="store_true", help="Atualiza somente os CSVs compactos e manifestos do projeto.")
+    mode.add_argument("--preview", action="store_true", help="Gera a amostra V5 a partir das partições já preparadas.")
     parser.add_argument("--detail-dir", type=Path, default=DETAIL)
     args = parser.parse_args()
+    if args.preview:
+        build_preview(args.detail_dir, SMALL / 'preview')
+        return
+    if args.zip is None:
+        parser.error("Informe o ZIP de origem para preparar os dados.")
     with ZipFile(args.zip) as source:
         if args.small:
             package_small(source)

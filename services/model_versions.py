@@ -112,7 +112,7 @@ def classify(row, names):
             "fim_de_semana" if row.fim_de_semana else "dia_util")
     ids = json.loads(row.evento_versao_ids)
     matched = [names[i] for i in ids]
-    scopes = {"federal_administracao": "nacional", "nacional": "nacional",
+    scopes = {"federal_administracao": "federal_administracao", "nacional": "nacional",
               "estadual_rj": "estadual", "municipal_rio": "municipal"}
     event = next((e for e in matched if (holiday and e['eh_feriado']) or (not holiday and optional and e['eh_ponto_facultativo'])), None)
     scope = scopes.get(event['esfera'], "nao_informado") if event else ("nao_informado" if holiday or optional else "nenhum")
@@ -197,9 +197,14 @@ def detail_index():
     if not path.is_file():
         url = setting("ENERGY_FORECAST_DETAIL_URL")
         sha = setting("ENERGY_FORECAST_DETAIL_SHA256")
-        if not url or not re.fullmatch("[a-f0-9]{64}", sha):
-            return []
-        path = _download(url, "index.json", sha, 1024 * 1024)
+        if url:
+            if not re.fullmatch("[a-f0-9]{64}", sha):
+                raise ValueError("Informe o SHA-256 do índice detalhado.")
+            path = _download(url, "index.json", sha, 1024 * 1024)
+        else:
+            path = root() / "preview" / "index.json"
+            if not path.is_file():
+                return []
     manifest = json.loads((root() / V5 / "MANIFESTO_v5.json").read_text(encoding="utf-8"))
     index = json.loads(path.read_text(encoding="utf-8"))
     expected = {f"previsoes_{h}h_v5.csv": manifest["arquivos"][f"previsoes_{h}h_v5.csv"]["sha256"] for h in (24, 48)}
@@ -214,7 +219,8 @@ def detail_index():
                 or not re.fullmatch("[a-f0-9]{64}", e["sha256"]) or not 0 < e["bytes"] <= 128 * 1024 * 1024):
             raise ValueError("Partição declarada inválida.")
         indexed.add(key)
-    return index["partitions"]
+    preview = path == root() / "preview" / "index.json"
+    return [dict(entry, preview=preview) for entry in index["partitions"]]
 
 
 @st.cache_resource(show_spinner=False)
@@ -226,12 +232,13 @@ def verified_path(path, digest, size, mtime):
 
 
 def partition_path(entry):
-    local = _details_dir() / entry["file"]
+    directory = root() / "preview" if entry["preview"] else _details_dir()
+    local = directory / entry["file"]
     if local.is_file():
         stamp = local.stat()
         return verified_path(local, entry["sha256"], stamp.st_size, stamp.st_mtime_ns)
     url = setting("ENERGY_FORECAST_DETAIL_URL")
-    if not url:
+    if not url or entry["preview"]:
         raise FileNotFoundError(entry["file"])
     return _download(url, entry["file"], entry["sha256"], entry["bytes"])
 
@@ -269,10 +276,13 @@ def legacy_bundle(path, digest):
         return bundle
 
 
+def legacy_available():
+    return (_details_dir() / "painel.zip").is_file() or bool(setting("ENERGY_FORECAST_DETAIL_URL"))
+
+
 def legacy_path():
-    path = root() / "detail" / "painel.zip"
-    local = _details_dir() / path.name
+    local = _details_dir() / "painel.zip"
     if local.is_file():
         return local
     url = setting("ENERGY_FORECAST_DETAIL_URL")
-    return _download(url, path.name, LEGACY_SHA, 24_000_000) if url else None
+    return _download(url, local.name, LEGACY_SHA, 24_000_000) if url else None

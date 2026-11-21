@@ -21,6 +21,7 @@ DAY_LABELS = {
 }
 SCOPE_LABELS = {
     "nacional": "Nacional", "estadual": "Estadual", "municipal": "Municipal",
+    "federal_administracao": "Administração pública federal",
     "nenhum": "Sem evento", "nao_informado": "Não informado",
 }
 
@@ -42,7 +43,7 @@ def format_timestamp(value: pd.Timestamp, timezone: str = "America/Sao_Paulo") -
     return pd.Timestamp(value).tz_convert(timezone).strftime("%d/%m/%Y %H:%M %z")
 
 
-def page_header(title: str, description: str = "") -> tuple[DataBundle, SidebarSettings]:
+def page_header(title: str) -> tuple[DataBundle, SidebarSettings]:
     bundle, settings = get_context()
     st.title(title)
     st.caption(f"{TARGET_REGION}, RJ · {settings.unit} · America/Sao_Paulo")
@@ -102,7 +103,8 @@ def forecast_picker(
 def forecast_details(forecast: Forecast, settings: SidebarSettings) -> None:
     st.write(f"Modelo: {forecast.model_name} · Versão: {forecast.model_version}")
     st.write(f"Região declarada: {forecast.region} · Unidade: {forecast.unit}")
-    st.write(f"Conjunto: {SPLIT_LABELS.get(forecast.dataset_split, forecast.dataset_split)}")
+    stage = "Retrospectiva 2026" if settings.mode == "v1" and forecast.dataset_split == "forecast_2026" else SPLIT_LABELS.get(forecast.dataset_split, forecast.dataset_split)
+    st.write(f"Conjunto: {stage}")
     st.write(f"Emissão: {format_timestamp(forecast.issued_at, settings.timezone)}")
     if forecast.source_path:
         st.write(f"Arquivo: {forecast.source_path.name}")

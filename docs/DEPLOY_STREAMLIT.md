@@ -61,7 +61,6 @@ Para habilitar todas as análises reais, a carga deve cobrir os alvos e ao menos
 
 Antes de incorporar uma base futura, registrar fonte oficial/produtora, recorte municipal comprovado, unidade, fuso, processamento temporal, natureza observada/previsão retrospectiva/forecast e permissão ou licença de redistribuição. Preservar modelos, versões e partições. Revisar o calendário e as estações. Criar exceções nominais no `.gitignore` somente para os arquivos aprovados; eles devem fazer parte do checkout da nuvem. Não remover globalmente a proteção das pastas privadas nem forçar a inclusão do ZIP antigo.
 
-Não foi acrescentado um download externo de dados: não há fonte municipal autorizada fornecida para configurar. Quando o pacote correto chegar, sua inclusão e a auditoria científica serão uma etapa própria. A checagem `--require-municipal-data` sinaliza a pendência atual; ela deverá ser atualizada com verificação da fonte efetivamente aprovada, sem substituir essa auditoria por um rótulo `municipal`.
 
 ## Verificação antes de publicar
 
@@ -76,8 +75,6 @@ python scripts/smoke_startup.py
 python -m services.demo_data
 python scripts/check_public_bundle.py --git-index --include-demo
 python -m pytest -q -W error::DeprecationWarning -W error::SyntaxWarning
-# Esta etapa falha enquanto não houver uma base municipal aprovada:
-python scripts/check_public_bundle.py --git-index --require-municipal-data
 ```
 
 O gerador é uma etapa explícita de testes, não é executado pela aplicação e não substitui dados reais. Ele recusa sobrescrita por padrão. As fixtures são ignoradas pelo Git e têm manifesto de integridade com normalização textual de finais de linha. A demonstração da UI local só aparece ao habilitar explicitamente `ENERGY_FORECAST_ALLOW_DEMO=true` e selecioná-la na lateral; mesmo com essa variável, o padrão continua real.

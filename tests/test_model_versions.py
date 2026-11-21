@@ -1,5 +1,6 @@
-from datetime import timedelta
 """Integração com o catálogo publicado e partições mínimas descartáveis."""
+
+from datetime import timedelta
 import hashlib
 import json
 from pathlib import Path
@@ -44,9 +45,9 @@ def test_v5_starts_with_exact_horizons_and_older_aggregate_only(monkeypatch, tmp
     assert len(page.dataframe[0].value) == 24
     page.radio(key="v5_explorer_horizon").set_value(48).run()
     assert not page.exception and len(page.dataframe[0].value) == 48
-    page.selectbox(key="catalog_explorer_version").set_value("V3").run()
-    assert not page.exception and not page.get("plotly_chart") and not page.dataframe
-    assert "não inclui previsões por emissão" in page.info[0].value
+    assert page.selectbox(key="catalog_explorer_version").options == ["V5"]
+    assert page.selectbox(key="source_mode").options == ["Catálogo V1–V5"]
+    assert any("V2–V4 têm apenas métricas agregadas" in item.value for item in page.caption)
 
 
 def test_metrics_use_real_row_keys_and_paired_source():
@@ -78,3 +79,15 @@ def test_audited_calendar_uses_versioned_ids_and_separate_pending_rows():
     assert not app.exception and len(app.get("plotly_chart")) >= 6
     assert any("evento_versao_id" in df.value for df in app.dataframe)
     assert any("motivo_pendencia" in df.value for df in app.dataframe)
+
+
+def test_clean_checkout_ships_real_v5_sample(monkeypatch, tmp_path):
+    monkeypatch.setenv("ENERGY_FORECAST_DETAIL_DIR", str(tmp_path))
+    monkeypatch.setenv("ENERGY_FORECAST_DETAIL_URL", "")
+    index = versions.detail_index()
+    assert len(index) == 12 and all(item["preview"] for item in index)
+    assert sum(item["rows"] for item in index) == 432
+    page = AppTest.from_file(ROOT / "streamlit_app.py", default_timeout=60).run()
+    assert not page.exception and len(page.dataframe[0].value) == 24
+    assert any("12 emissões reais" in item.value for item in page.caption)
+    assert page.selectbox(key="catalog_explorer_version").options == ["V5"]

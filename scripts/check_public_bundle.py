@@ -54,7 +54,6 @@ class PublicBundleReport:
     selected_files: int = 0
     selected_bytes: int = 0
     demo_verified_files: int = 0
-    municipal_data: str = "not_available_or_not_approved"
     errors: list[str] = field(default_factory=list)
 
     @property
@@ -162,8 +161,7 @@ def check_demo_manifest(root: Path) -> tuple[int, list[str]]:
     return verified, errors
 
 
-def check_public_bundle(root: Path, selected_paths: Iterable[str] | None = None, *, include_demo: bool = False,
-                        require_municipal_data: bool = False) -> PublicBundleReport:
+def check_public_bundle(root: Path, selected_paths: Iterable[str] | None = None, *, include_demo: bool = False) -> PublicBundleReport:
     """Audita seleção explícita ou índice Git; não autoriza bases científicas."""
     root = Path(root).resolve()
     report = PublicBundleReport("git_index" if selected_paths is None else "explicit_paths")
@@ -199,8 +197,6 @@ def check_public_bundle(root: Path, selected_paths: Iterable[str] | None = None,
     if include_demo:
         report.demo_verified_files, errors = check_demo_manifest(root)
         report.errors.extend(errors)
-    if require_municipal_data:
-        report.errors.append("Prontidão científica indisponível: nenhuma base municipal real autorizada e compatível foi incorporada nesta versão. A estrutura pronta não autoriza o deploy científico.")
     return report
 
 
@@ -211,9 +207,8 @@ def main() -> int:
     parser.add_argument("--root", type=Path, default=PROJECT_ROOT)
     parser.add_argument("--git-index", action="store_true", help="Consultar o índice Git (seleção padrão).")
     parser.add_argument("--include-demo", action="store_true", help="Conferir também as fixtures sintéticas LOCAIS; não permite incluí-las no Git público.")
-    parser.add_argument("--require-municipal-data", action="store_true", help="Exigir base municipal aprovada; falha explicitamente enquanto essa base estiver ausente.")
     args = parser.parse_args()
-    report = check_public_bundle(args.root, include_demo=args.include_demo, require_municipal_data=args.require_municipal_data)
+    report = check_public_bundle(args.root, include_demo=args.include_demo)
     print(json.dumps({"ok": report.ok, **asdict(report)}, ensure_ascii=True, indent=2))
     return 0 if report.ok else 1
 

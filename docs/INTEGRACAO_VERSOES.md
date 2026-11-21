@@ -1,6 +1,6 @@
 # Evolução experimental V1–V5
 
-O catálogo é a fonte padrão. O alvo é ONS_SECO_piloto, carga do ONS Sudeste/Centro-Oeste em MWmed. O RJ entra como contexto acadêmico. A série não mede a carga municipal. V5 é a versão padrão. As três páginas originais permanecem.
+O catálogo é a fonte padrão. O alvo é ONS_SECO_piloto, carga do ONS Sudeste/Centro-Oeste em MWmed. O RJ entra como contexto acadêmico. A série não mede a carga municipal. V5 é a versão padrão. As três páginas originais permanecem. Em um clone limpo, a amostra de 12 emissões reais do manifesto permite abrir 24h e 48h nas três etapas e nas duas hipóteses.
 
 - **Explorador:** V5 consulta uma emissão por cenário, etapa, horizonte, estimador e data/hora. V1 conserva a leitura do pacote legado e o carimbo interpretado apenas para exibição. Para V2–V4, o painel explica a disponibilidade exclusivamente agregada.
 - **Desempenho:** os CSVs consolidados fornecem V1–V4 e o piloto histórico. Os CSVs V5 fornecem a versão atual. O painel separa estimadores selecionados, alternativas, pilotos e referências. N/D indica célula ausente. O gráfico usa pontos por versão; o gráfico por passo conserva lacunas. Hora e mês civis referem-se ao alvo. A tabela V4 × V5 usa somente o CSV de pares comuns.
@@ -22,12 +22,12 @@ O checkout já inclui os arquivos compactos em data/versions: manifestos, métri
 
 ## Hospedagem
 
-Use streamlit_app.py na raiz e Python 3.13. As tabelas e a série auditada funcionam com os arquivos versionados. Para liberar o Explorador, disponibilize o diretório derivado em armazenamento HTTPS aprovado. Sirva index.json, os arquivos Parquet e painel.zip com os mesmos nomes. Defina no ambiente do servidor:
+Use streamlit_app.py na raiz e Python 3.13. As tabelas e a série auditada funcionam com os arquivos versionados. Para ampliar o Explorador da amostra para a coleção integral e habilitar o detalhe V1, disponibilize o diretório derivado em armazenamento HTTPS aprovado. Sirva index.json, os arquivos Parquet e painel.zip com os mesmos nomes. Defina no ambiente do servidor:
 
 - ENERGY_FORECAST_DETAIL_URL com a URL HTTPS base, sem credenciais na URL.
 - ENERGY_FORECAST_DETAIL_SHA256 com o SHA-256 do index.json impresso pelo preparador.
 
-No Community Cloud, essas variáveis podem ser definidas no campo **Secrets** como chaves TOML de nível superior. O índice informa hashes e limites de cada partição. O painel só baixa a partição do mês/recorte consultado e confirma SHA-256 antes de abrir. O cache é temporário e pode ser reconstruído a partir dessa fonte após reinício. O ZIP legado só é buscado quando V1 é escolhida. Em instalações com arquivos locais montados, ENERGY_FORECAST_DETAIL_DIR substitui a URL. Sem detalhe configurado, o Explorador informa a indisponibilidade, enquanto a evolução e a sazonalidade funcionam.
+No Community Cloud, essas variáveis podem ser definidas no campo **Secrets** como chaves TOML de nível superior. O índice informa hashes e limites de cada partição. O painel só baixa a partição do mês/recorte consultado e confirma SHA-256 antes de abrir. O cache é temporário e pode ser reconstruído a partir dessa fonte após reinício. O ZIP legado só é buscado quando V1 é escolhida. Em instalações com arquivos locais montados, ENERGY_FORECAST_DETAIL_DIR substitui a URL. Sem detalhe integral configurado, o Explorador seleciona explicitamente a amostra V5 versionada. Essa amostra tem 432 alvos originais e ocupa cerca de 122 kB. Regere-a com `python scripts/prepare_model_versions.py --preview` após preparar o detalhe integral. As métricas não são recalculadas a partir da amostra.
 
 ## Interpretação
 

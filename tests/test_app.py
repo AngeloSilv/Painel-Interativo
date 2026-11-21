@@ -41,7 +41,7 @@ bundle = load_data({mode!r})
 region = bundle.forecasts[0].region if bundle.forecasts else (bundle.observations["region"].iloc[0] if not bundle.observations.empty else None)
 unit = bundle.forecasts[0].unit if bundle.forecasts else (bundle.observations["unit"].iloc[0] if not bundle.observations.empty else "MWmed")
 st.session_state["data_bundle"] = bundle
-st.session_state["app_settings"] = SidebarSettings({mode!r}, {horizon}, region, "Município do Rio de Janeiro", unit=unit)
+st.session_state["app_settings"] = SidebarSettings({mode!r}, {horizon}, region, unit=unit)
 st.session_state["selected_horizon"] = {horizon}
 render()
 '''
