@@ -2,21 +2,25 @@
 
 ## TCC Energy Forecast — Rio de Janeiro
 
-Aplicação local do TCC de Ciência da Computação da Universidade Veiga de Almeida. O recorte definido é o **município do Rio de Janeiro (capital)** e a unidade-alvo é **MWmed**. A série utilizada precisa representar esse município; uma carga estadual, de concessão ou de subsistema não se torna municipal por mudar seu rótulo.
+Aplicação do TCC de Ciência da Computação da Universidade Veiga de Almeida. O estudo tem o Rio de Janeiro como contexto e o catálogo experimental usa a série ONS Sudeste/Centro-Oeste, em MWmed.
 
 O painel mantém fontes isoladas: **Base do grupo (CSV)** e **Arquivos dos modelos (JSON/CSV)**. A demonstração é uma ferramenta local/de testes que precisa ser habilitada explicitamente. Seus dados artificiais não representam medições, calendário oficial ou desempenho dos modelos do TCC.
 
 Repositório oficial [AngeloSilv/Painel-Interativo](https://github.com/AngeloSilv/Painel-Interativo).
 
+## Catálogo V1–V5
+
+A fonte padrão mostra a V5 e o histórico experimental dos modelos de 24h e 48h. As métricas, a série e o calendário já acompanham o projeto. A carga da entrega corresponde ao ONS Sudeste/Centro-Oeste. Prepare o detalhe V1/V5 e configure a hospedagem seguindo o [guia de integração das versões](docs/INTEGRACAO_VERSOES.md).
+
 ## Situação da publicação
 
-A publicação do painel no Streamlit Community Cloud depende da incorporação de uma base municipal real aprovada. Um checkout sem essa base abre as três páginas com estados vazios informativos. O [guia de implantação](docs/DEPLOY_STREAMLIT.md) descreve os parâmetros e a verificação do acesso público.
+O checkout abre o catálogo regional com métricas e série auditada. O acesso às emissões detalhadas depende das partições descritas no guia. O [guia de implantação](docs/DEPLOY_STREAMLIT.md) descreve os parâmetros e a verificação do acesso público.
 
-## Revisão científica de 16/11/2026 — bloqueio da base incompatível
+## Proveniência do pacote legado
 
 A declaração municipal feita na integração anterior foi confrontada com uma fonte independente. **As 8.784 horas de carga de 2024 do pacote recebido coincidem com `val_carga` do subsistema Sudeste/Centro-Oeste**, com diferença máxima de 1,000444171950221×10⁻⁸ MWmed. O [conjunto oficial do ONS](https://dados.ons.org.br/dataset/balanco-energia-subsistema) é horário e regional; seu [dicionário](https://ons-aws-prod-opendata.s3.amazonaws.com/dataset/balanco_energia_subsistema_ho/DicionarioDados_Balanco_Energia_Subsistema.json) define `val_carga` em MWmed. A comparação é vinculada aos hashes do ZIP e do arquivo oficial, com evidência reproduzível em `artifacts/revisao_comparacao_ons_2024.json`.
 
-**Esse pacote está em quarentena na visão municipal.** Selecionar Base do grupo exibe o diagnóstico e impede gráficos, indicadores e exportações de carga ou resultados rotulados como municipais. O alvo do TCC continua sendo exclusivamente o município do Rio; não foi substituído por região metropolitana ou subsistema. ZIP, configuração original, previsões e resultados recebidos permanecem intactos. Não há troca automática por dados sintéticos: a demonstração deve ser selecionada explicitamente.
+**Esse pacote está em quarentena na visão municipal.** Selecionar Base do grupo exibe o diagnóstico e impede gráficos, indicadores e exportações de carga ou resultados rotulados como municipais. O novo catálogo disponibiliza o mesmo ZIP no Explorador V1 com o rótulo regional. ZIP, configuração original, previsões e resultados recebidos permanecem intactos. Não há troca automática por dados sintéticos: a demonstração deve ser selecionada explicitamente.
 
 O [catálogo oficial do INMET](https://apitempo.inmet.gov.br/estacoes/T) também identifica A621 como Rio de Janeiro–Vila Militar e A601 como Seropédica–Ecologia Agrícola. A601 não entra na média municipal; estações sem localização verificada ficam indisponíveis na visão municipal. Dados sintéticos continuam permitidos e sinalizados como artificiais.
 

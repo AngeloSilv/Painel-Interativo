@@ -13,7 +13,16 @@ from services.pattern_service import aggregate_load_temperature, calendar_profil
 
 
 def render() -> None:
-    bundle, settings = page_header("Sazonalidade, Clima e Calendário")
+    if st.session_state.get("version_catalog_mode"):
+        from components.model_versions_views import render_seasonality
+
+        render_seasonality(_render_profiles)
+    else:
+        _render_profiles()
+
+
+def _render_profiles(context=None) -> None:
+    bundle, settings = context or page_header("Sazonalidade, Clima e Calendário")
     observations = region_history(bundle.observations, settings.region, unit=settings.unit)
     if observations.empty:
         st.info("Nenhuma carga municipal observada disponível.")
@@ -97,6 +106,8 @@ def render() -> None:
         st.write("A série climática usa médias somente dos pares disponíveis: dia local ou semana iniciada na segunda-feira. Períodos sem pares permanecem como lacunas. Dois eixos preservam as unidades de carga e temperatura; agregações são apenas visuais e não alteram modelos ou métricas.")
         st.write(f"Estação: {settings.station or 'média das estações municipais disponíveis em cada instante'}. O número de estações pode variar. A601 (Seropédica) não integra a visão municipal.")
         st.write("Sazonalidade e calendário usam o período da análise; clima usa seu intervalo próprio. Na resolução horária, a série temporal é limitada a 168 h para manter a leitura.")
+        if bundle.mode == "v5":
+            st.write("A classificação horária vem dos IDs de evento conhecidos naquele instante.")
         st.write("Prioridade do calendário: feriado > ponto facultativo > fim de semana > dia útil. O ponto facultativo aplica-se ao âmbito administrativo indicado, sem implicar paralisação de toda a economia. Datas sem classificação permanecem não informadas.")
         st.write("A abrangência e as datas devem ser sustentadas pelas fontes oficiais. A auditoria encontrou eventos federais e omissões municipais no pacote recebido; esse pacote está bloqueado na visão municipal.")
         if bundle.mode == "demo":

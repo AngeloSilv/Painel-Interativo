@@ -15,14 +15,23 @@ from services.metrics_service import calculate_metrics
 
 
 def render() -> None:
-    bundle, settings = page_header("Explorador de Previsões")
-    candidates = get_catalog(bundle, settings)
+    if st.session_state.get("version_catalog_mode"):
+        from components.model_versions_views import render_explorer
+
+        render_explorer(_render_legacy)
+    else:
+        _render_legacy()
+
+
+def _render_legacy(context=None, catalog=None) -> None:
+    bundle, settings = context or page_header("Explorador de Previsões")
+    candidates = get_catalog(bundle, settings) if catalog is None else catalog
     controls = st.columns([1.15, 1, 1])
     available_splits = set(candidates["dataset_split"])
     splits = [value for value in ("forecast_2026", "test_2025", "unspecified") if value in available_splits]
     with controls[0]:
         split = st.selectbox(
-            "Conjunto", splits or ["unspecified"], format_func=lambda value: SPLIT_LABELS[value],
+            "Conjunto", splits or ["unspecified"], format_func=lambda value: "Retrospectiva 2026" if settings.mode == "v1" and value == "forecast_2026" else SPLIT_LABELS[value],
             disabled=not splits, key=f"explorer_split_{settings.mode}",
         )
     subset = candidates.loc[candidates["dataset_split"] == split]

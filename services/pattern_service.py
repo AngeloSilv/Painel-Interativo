@@ -199,6 +199,10 @@ def calendar_profile(
     if calendar.empty:
         observed["day_type"] = "nao_informado"
         observed["holiday_scope"] = "nao_informado"
+    elif "timestamp" in calendar:
+        events = _regional(calendar, region)[["timestamp", "day_type", "holiday_scope"]]
+        observed = observed.merge(events, on="timestamp", how="left", validate="one_to_one")
+        observed[["day_type", "holiday_scope"]] = observed[["day_type", "holiday_scope"]].fillna("nao_informado")
     else:
         events = _regional(calendar, region)[["date", "day_type", "holiday_scope"]].copy()
         events["date"] = pd.to_datetime(events["date"]).dt.date

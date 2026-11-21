@@ -20,11 +20,13 @@ class SidebarSettings:
     station: str | None = None
 
 
-def select_data_mode(has_imported: bool = False, allow_demo: bool = False) -> str:
+def select_data_mode(has_imported: bool = False, allow_demo: bool = False, has_versions: bool = False) -> str:
     """Demonstração exige habilitação explícita, sem fallback de fontes reais."""
     options = ["Arquivos dos modelos", "Base do grupo (CSV)"]
     if has_imported:
         options.reverse()
+    if has_versions:
+        options.insert(0, "Catálogo V1–V5")
     if allow_demo:
         options.append("Demonstração")
     if "source_mode" in st.session_state and st.session_state["source_mode"] not in options:
@@ -33,7 +35,7 @@ def select_data_mode(has_imported: bool = False, allow_demo: bool = False) -> st
         "Fonte", options, key="source_mode",
         help="As fontes são isoladas. Dados ausentes ou incompatíveis não são substituídos por simulação.",
     )
-    return {"Demonstração": "demo", "Arquivos dos modelos": "real", "Base do grupo (CSV)": "provided"}[label]
+    return {"Catálogo V1–V5": "versions", "Demonstração": "demo", "Arquivos dos modelos": "real", "Base do grupo (CSV)": "provided"}[label]
 
 
 def render_sidebar(bundle: DataBundle, catalog: pd.DataFrame) -> SidebarSettings:

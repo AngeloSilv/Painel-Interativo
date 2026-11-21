@@ -4,6 +4,8 @@ import os
 
 import streamlit as st
 
+from services import model_versions
+
 from app_pages import desempenho, explorador, sazonalidade
 from components.sidebar import render_sidebar, select_data_mode
 from services.app_data import imported_config_path, load_app_context
@@ -35,14 +37,17 @@ def main() -> None:
     # explícita de desenvolvimento/teste, nunca um fallback de dados ausentes.
     mode = select_data_mode(
         has_imported=imported_config_path().is_file(),
+        has_versions=model_versions.enabled(),
         allow_demo=os.environ.get("ENERGY_FORECAST_ALLOW_DEMO", "").strip().lower() == "true",
     )
-    with st.spinner("Carregando os dados locais…"):
-        bundle, catalog = load_app_context(mode)
-    settings = render_sidebar(bundle, catalog)
-    st.session_state["data_bundle"] = bundle
-    st.session_state["app_settings"] = settings
-    st.session_state["forecast_catalog"] = catalog
+    st.session_state["version_catalog_mode"] = mode == "versions"
+    if mode != "versions":
+        with st.spinner("Carregando os dados locais…"):
+            bundle, catalog = load_app_context(mode)
+        settings = render_sidebar(bundle, catalog)
+        st.session_state["data_bundle"] = bundle
+        st.session_state["app_settings"] = settings
+        st.session_state["forecast_catalog"] = catalog
 
     navigation = st.navigation(
         [

@@ -1,5 +1,7 @@
 # Publicação no Streamlit Community Cloud
 
+Para o catálogo experimental regional V1–V5, use o [guia específico de hospedagem](INTEGRACAO_VERSOES.md#hospedagem). As instruções abaixo documentam a configuração anterior do leitor municipal.
+
 ## Estado desta preparação
 
 Decisão do grupo em **17/11/2026**: publicar somente dados reais do **município do Rio de Janeiro, RJ**, em MWmed, após receber uma base compatível. A carga recebida anteriormente é incompatível com esse recorte e permanece bloqueada. Não existe nesta distribuição uma base municipal aprovada para publicação.

@@ -23,6 +23,8 @@ Thumbs.db
 build/
 dist/
 artifacts/
+data/versions/detail/
+data/versions/tmp*/
 # Dados sintéticos são fixtures locais/CI; não entram na versão pública real.
 data/demo/*
 !data/demo/.gitkeep
