@@ -12,7 +12,7 @@ Repositório oficial [tccilda/Painel](https://github.com/tccilda/Painel).
 
 A fonte padrão mostra a V5 e o histórico experimental dos modelos de 24h e 48h. As métricas, a série e o calendário já acompanham o projeto. A carga da entrega corresponde ao ONS Sudeste/Centro-Oeste. Prepare o detalhe V1/V5 e configure a hospedagem seguindo o [guia de integração das versões](docs/INTEGRACAO_VERSOES.md).
 
-A [revisão de aderência à monografia](docs/REVISAO_MONOGRAFIA.md) liga os objetivos do TCC às três abas e registra os limites da avaliação.
+A [matriz de requisitos](docs/MATRIZ_REQUISITOS.md) relaciona o pedido aos dados, código e testes. O [relatório de auditoria](docs/RELATORIO_AUDITORIA_FINAL.md) registra o que foi validado e as pendências científicas. A [revisão da monografia](docs/REVISAO_MONOGRAFIA.md) identifica as seções acadêmicas correspondentes.
 
 ## Situação da publicação
 
@@ -44,7 +44,7 @@ Uma cópia íntegra está em `data/imported/painel_b10830eaae44.zip`, com SHA-25
 
 Os relatórios estão em `artifacts/auditoria_serie.md` e `artifacts/auditoria_previsoes.md`. O adaptador verifica hash, formatos, horizontes, partições e correspondência com a carga; os erros exportados não substituem os cálculos do painel. O resíduo do painel continua **observado − previsto**, mesmo que algum resumo original use o sinal oposto.
 
-**Base do grupo (CSV)** permanece como opção inicial quando a configuração existe e apresenta o bloqueio geográfico para este pacote. Sem essa configuração, a aplicação inicia em **Arquivos dos modelos**, mesmo que as pastas reais estejam vazias. Uma base substituta precisa representar efetivamente o município e ter fonte/unidade/fuso documentados; alterar somente o rótulo não corrige uma série regional. Hashes divergentes são recusados.
+O catálogo regional V1–V5 é a fonte inicial. O leitor municipal oferece **Base do grupo (CSV)** quando há configuração local e aplica o bloqueio geográfico a esse pacote. Uma base para o leitor municipal precisa representar a carga do município e documentar fonte, unidade e fuso. Hashes divergentes são recusados.
 
 ## Instalação e execução
 
@@ -92,11 +92,11 @@ Carregamentos padrão e catálogo usam `st.cache_data` com assinatura dos arquiv
 
 ## As três abas
 
-1. **Explorador de Previsões:** conjunto, modelo 24h/48h, data/hora de emissão e contexto de 48, 72, 120 ou 168h em duas linhas. Quatro indicadores curtos, distribuição compacta de calendário e gráfico Histórico × Previsão com quatro séries. Valores horários e metadados ficam recolhidos; ausência é exibida como N/D.
-2. **Desempenho e Erros:** tabela compacta com os quatro segmentos de modelos e duas referências; amostra/cobertura em detalhes. Curva selecionável de MAE/RMSE/MAPE por passo; filtros de mês, dia da semana, calendário e temperatura; episódios ordenados por erro com exportação. Conjuntos são separados. Sem pareamento verificável, os resultados são identificados como descritivos, sem comparação entre horizontes.
-3. **Sazonalidade, Clima e Calendário:** perfis diário/semanal e evolução mensal/anual de 2024–2026; clima com intervalo próprio, dispersão WebGL mantendo todos os pares e agregação temporal diária/semanal. A opção horária limita a série temporal aos últimos 168h e informa esse recorte. Calendário compara as categorias informadas; não extrapola períodos incompletos.
+1. **Previsões.** A V5 abre por padrão. Selecione hipótese, conjunto, horizonte, mês, estimador e emissão. O gráfico combina histórico, previsão, observado e referências. A tabela recolhível reúne valores horários, resumo de calendário e exportação. A V1 aparece quando o ZIP legado está configurado.
+2. **Desempenho e Erros.** Consulte as métricas fornecidas V1–V5 por versão, hipótese, etapa, horizonte e bloco. Veja os denominadores de MAE/RMSE e MAPE, a curva por passo, os dois horizontes com referências e o recorte pareado V4 × V5. Os episódios V1/V5 usam um mês de emissão de cada vez, com filtros no alvo por dia da semana, calendário e temperatura.
+3. **Sazonalidade, Clima e Calendário.** Compare perfis horários e semanais, médias mensais e anuais, dispersão e séries de carga e temperatura. Filtre as categorias de calendário por tipo e âmbito. O painel exibe o número de horas efetivamente observadas nos períodos disponíveis de 2024 a 2026.
 
-A lateral contém fonte e estação disponível, sem repetir descrições acadêmicas. O município é fixo. Se houver mais de uma série física/unidade, a seleção identifica séries distintas, sem conversão ou simples mudança de rótulo. Explicações ficam em tooltips e **Detalhes metodológicos**. Números são exibidos no padrão brasileiro, enquanto CSVs mantêm a precisão original.
+A navegação fica no topo. O seletor de fonte só aparece quando a instalação oferece opções adicionais. Explicações ficam nas ajudas dos controles e em **Detalhes metodológicos**. As exportações preservam a precisão e os identificadores da origem.
 
 ## Arquitetura
 
